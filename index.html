@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>습관 대시보드</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#050505" />
+  <link rel="icon" href="icon-192-v3.png">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --card: #0d0d0f;
+      --line: #232327;
+      --text: #f5f5f7;
+      --muted: #9a9aa3;
+      --accent: #f4c542;
+      --green: #79d26b;
+      --danger: #ff6b6b;
+      --shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .analysis-section {
+      margin-bottom: 18px;
+    }
+
+    .analysis-grid-wide {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .bottom-wide-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      height: auto;
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 30px;
+      font-weight: 900;
+      margin: 0 0 8px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .habit-input {
+      flex: 1;
+      height: 64px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #070709;
+      color: var(--text);
+      padding: 0 20px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    .habit-input::placeholder {
+      color: #6f6f77;
+    }
+
+    .add-btn {
+      min-width: 150px;
+      height: 64px;
+      border: none;
+      border-radius: 18px;
+      background: var(--accent);
+      color: #111;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .bulk-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .bulk-btn {
+      height: 48px;
+      padding: 0 18px;
+      border: 1px solid #2d2d34;
+      border-radius: 16px;
+      background: #15151b;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .big-progress {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      min-height: 220px;
+    }
+
+    .big-percent {
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .big-sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .progress-bar,
+    .small-progress {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #17171c;
+      border-radius: 999px;
+    }
+
+    .progress-bar {
+      height: 10px;
+    }
+
+    .small-progress {
+      height: 8px;
+    }
+
+    .progress-fill,
+    .small-fill {
+      height: 100%;
+      transition: width 0.2s ease;
+    }
+
+    .progress-fill {
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #ffd86e);
+    }
+
+    .small-fill {
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), #9be88f);
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 46px;
+      line-height: 1;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .stat-sub {
+      color: #7f8088;
+      font-size: 13px;
+    }
+
+    .habit-list {
+      margin-top: 8px;
+    }
+
+    .habit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #08080b;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px 16px;
+      margin-bottom: 10px;
+      cursor: grab;
+      transition: 0.2s ease;
+    }
+
+    .habit-row:hover {
+      border-color: #3b3b43;
+      transform: translateY(-1px);
+    }
+
+    .habit-row.dragging {
+      opacity: 0.45;
+    }
+
+    .habit-row.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(244,197,66,0.18);
+    }
+
+    .habit-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .drag-handle {
+      color: var(--muted);
+      font-size: 18px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .habit-name {
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .delete-btn {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 14px;
+      background: #17171c;
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #09090c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1000px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #0e0e12;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    thead th:first-child {
+      text-align: left;
+      min-width: 170px;
+      padding-left: 14px;
+    }
+
+    tbody td {
+      text-align: center;
+      padding: 8px;
+      border-bottom: 1px solid #17171c;
+    }
+
+    tbody td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #0b0b0f;
+      text-align: left;
+      padding-left: 14px;
+      font-weight: 700;
+    }
+
+    .today-col {
+      background: rgba(244,197,66,0.08);
+    }
+
+    .day-check {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .analysis-item {
+      background: #09090c;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 110px;
+    }
+
+    .analysis-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .analysis-name {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .analysis-percent {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .analysis-sub {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: #7f8088;
+      font-size: 12px;
+    }
+
+    .chart-card {
+      min-height: 320px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    .chart-wrap.tall {
+      height: 280px;
+    }
+
+    .empty-text {
+      color: var(--muted);
+      font-size: 15px;
+      padding: 10px 0;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 1400px) {
+      .analysis-grid-wide {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 1280px) {
+      .top-grid,
+      .stats-grid,
+      .bottom-grid,
+      .bottom-wide-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .analysis-grid-wide {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 820px) {
+      body { padding: 14px; }
+      h1 { font-size: 36px; }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      .add-btn,
+      .habit-input {
+        width: 100%;
+      }
+
+      .stat-value { font-size: 34px; }
+      .big-percent { font-size: 44px; }
+    }
+
+    @media (max-width: 700px) {
+      .analysis-grid-wide {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>습관 대시보드</h1>
+
+    <div class="top-grid">
+      <div class="card">
+        <div class="input-row">
+          <input id="habitInput" class="habit-input" type="text" placeholder="예: 운동, 독서, 일찍 자기" />
+          <button class="add-btn" onclick="addHabit()">습관 추가</button>
+        </div>
+
+        <div class="bulk-actions">
+          <button class="bulk-btn" onclick="setTodayAll(true)">오늘 전체 완료</button>
+          <button class="bulk-btn" onclick="setTodayAll(false)">오늘 전체 해제</button>
+          <button class="bulk-btn" onclick="setMonthAll(true)">이번 달 전체 완료</button>
+          <button class="bulk-btn" onclick="setMonthAll(false)">이번 달 전체 해제</button>
+        </div>
+
+        <div id="habitList" class="habit-list"></div>
+        <div class="hint">습관 줄을 직접 끌어서 순서를 바꿀 수 있습니다. 삭제는 × 버튼으로 할 수 있습니다.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">이번 달 전체 목표 진행률</div>
+        <div class="big-progress">
+          <div id="monthPercent" class="big-percent">0%</div>
+          <div id="monthSummary" class="big-sub">0 / 0 완료</div>
+          <div class="progress-bar">
+            <div id="monthProgressFill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">오늘 성공률</div>
+        <div id="todayRate" class="stat-value">0%</div>
+        <div class="stat-sub">오늘 기준 완료 비율</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">오늘 성공 수</div>
+        <div id="todayDoneCount" class="stat-value">0</div>
+        <div class="stat-sub">오늘 체크 완료 개수</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">오늘 남은 수</div>
+        <div id="todayRemainCount" class="stat-value">0</div>
+        <div class="stat-sub">오늘 아직 남은 개수</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">오늘 총 목표 수</div>
+        <div id="todayTotalCount" class="stat-value">0</div>
+        <div class="stat-sub">오늘 기준 전체 습관 수</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <div class="section-title">체크표</div>
+      <div class="section-sub">한 달 전체 체크 현황을 한 번에 볼 수 있습니다.</div>
+      <div class="table-wrap">
+        <table id="checkTable"></table>
+      </div>
+      <div class="footer-note">오늘 날짜 열은 살짝 강조됩니다. 체크하면 자동 저장됩니다.</div>
+    </div>
+
+    <div class="card analysis-section">
+      <div class="section-title">분석 패널</div>
+      <div class="section-sub">습관별 이번 달 완료 비율 요약</div>
+      <div id="analysisList" class="analysis-grid-wide"></div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="card chart-card">
+        <div class="section-title">오늘 완료율</div>
+        <div class="section-sub">원형 그래프로 오늘 달성 현황</div>
+        <div class="chart-wrap">
+          <canvas id="todayDonutChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="section-title">이번 달 완료율</div>
+        <div class="section-sub">원형 그래프로 이번 달 진행률</div>
+        <div class="chart-wrap">
+          <canvas id="monthDonutChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-wide-grid">
+      <div class="card chart-card">
+        <div class="section-title">일별 성공 그래프</div>
+        <div class="section-sub">하루 단위 성공 개수 추이</div>
+        <div class="chart-wrap tall">
+          <canvas id="dailySuccessChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="section-title">습관별 진행 그래프</div>
+        <div class="section-sub">각 습관의 이번 달 진행 상태</div>
+        <div class="chart-wrap tall">
+          <canvas id="habitProgressChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const SUPABASE_URL = "https://enzkrtjtrddehzgsiujt.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7_M136eKhaNh0ElgG3q2Iw_t82JEyMl";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+console.log("Supabase 연결 완료");
+    const STORAGE_KEY = "habitDashboardDataPWA";
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const monthKey = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
+
+    const defaultHabits = [
+      "6시 기상",
+      "운동",
+      "독서",
+      "사업 아이디어 정리",
+      "깊이 있는 집중",
+      "일찍 자기",
+      "콘텐츠 인풋"
+    ];
+
+    let draggedIndex = null;
+
+    let todayDonutChart = null;
+    let monthDonutChart = null;
+    let dailySuccessChart = null;
+    let habitProgressChart = null;
+
+    const appState = loadState() || {
+      habits: [...defaultHabits],
+      monthData: {}
+    };
+
+    if (!appState.monthData[monthKey]) {
+      appState.monthData[monthKey] = {};
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return null;
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error("저장 데이터 불러오기 실패:", error);
+        return null;
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function getHabits() {
+      return appState.habits;
+    }
+
+    function getMonthChecks() {
+      if (!appState.monthData[monthKey]) {
+        appState.monthData[monthKey] = {};
+      }
+      return appState.monthData[monthKey];
+    }
+
+    function ensureHabitData(habitName) {
+      const monthChecks = getMonthChecks();
+
+      if (!monthChecks[habitName]) {
+        monthChecks[habitName] = Array(daysInMonth).fill(false);
+      }
+
+      if (monthChecks[habitName].length !== daysInMonth) {
+        const newArr = Array(daysInMonth).fill(false);
+        for (let i = 0; i < Math.min(monthChecks[habitName].length, daysInMonth); i++) {
+          newArr[i] = monthChecks[habitName][i];
+        }
+        monthChecks[habitName] = newArr;
+      }
+
+      return monthChecks[habitName];
+    }
+
+    function syncHabitData() {
+      const habits = getHabits();
+      const monthChecks = getMonthChecks();
+
+      habits.forEach((habit) => ensureHabitData(habit));
+
+      Object.keys(monthChecks).forEach((habitName) => {
+        if (!habits.includes(habitName)) {
+          delete monthChecks[habitName];
+        }
+      });
+
+      saveState();
+    }
+
+    function addHabit() {
+      const input = document.getElementById("habitInput");
+      const value = input.value.trim();
+
+      if (!value) {
+        alert("습관 이름을 입력해줘.");
+        return;
+      }
+
+      const habits = getHabits();
+      if (habits.includes(value)) {
+        alert("이미 있는 습관이야.");
+        return;
+      }
+
+      habits.push(value);
+      ensureHabitData(value);
+      saveState();
+      input.value = "";
+      renderAll();
+    }
+
+    function deleteHabit(index) {
+      const habits = getHabits();
+      const habitName = habits[index];
+
+      if (!confirm(`"${habitName}" 습관을 삭제할까?`)) return;
+
+      habits.splice(index, 1);
+      delete getMonthChecks()[habitName];
+      saveState();
+      renderAll();
+    }
+
+    function setTodayAll(value) {
+      getHabits().forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        checks[currentDay - 1] = value;
+      });
+      saveState();
+      renderAll();
+    }
+
+    function setMonthAll(value) {
+      getHabits().forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        for (let i = 0; i < daysInMonth; i++) {
+          checks[i] = value;
+        }
+      });
+      saveState();
+      renderAll();
+    }
+
+    function toggleCheck(habitName, dayIndex, checked) {
+      const checks = ensureHabitData(habitName);
+      checks[dayIndex] = checked;
+      saveState();
+      renderStats();
+      renderCheckTable();
+      renderAnalysis();
+      renderCharts();
+    }
+
+    function moveHabitByDrag(fromIndex, toIndex) {
+      const habits = getHabits();
+      if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
+
+      const moved = habits[fromIndex];
+      habits.splice(fromIndex, 1);
+      habits.splice(toIndex, 0, moved);
+
+      saveState();
+      renderAll();
+    }
+
+    function getTodayStats() {
+      const habits = getHabits();
+      const total = habits.length;
+      let done = 0;
+
+      habits.forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        if (checks[currentDay - 1]) done++;
+      });
+
+      const remain = total - done;
+      const rate = total === 0 ? 0 : Math.round((done / total) * 100);
+
+      return { total, done, remain, rate };
+    }
+
+    function getMonthStats() {
+      const habits = getHabits();
+      const totalPossible = habits.length * daysInMonth;
+      let done = 0;
+
+      habits.forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        done += checks.filter(Boolean).length;
+      });
+
+      const rate = totalPossible === 0 ? 0 : Math.round((done / totalPossible) * 100);
+
+      return { totalPossible, done, rate };
+    }
+
+    function getDailySuccessCounts() {
+      const habits = getHabits();
+      const counts = [];
+
+      for (let day = 0; day < daysInMonth; day++) {
+        let dayDone = 0;
+        habits.forEach((habit) => {
+          const checks = ensureHabitData(habit);
+          if (checks[day]) dayDone++;
+        });
+        counts.push(dayDone);
+      }
+
+      return counts;
+    }
+
+    function getHabitPercentages() {
+      return getHabits().map((habit) => {
+        const checks = ensureHabitData(habit);
+        const done = checks.filter(Boolean).length;
+        return Math.round((done / daysInMonth) * 100);
+      });
+    }
+
+    function renderHabitList() {
+      const list = document.getElementById("habitList");
+      list.innerHTML = "";
+
+      const habits = getHabits();
+
+      if (habits.length === 0) {
+        list.innerHTML = `<div class="empty-text">아직 등록된 습관이 없습니다.</div>`;
+        return;
+      }
+
+      habits.forEach((habit, index) => {
+        const row = document.createElement("div");
+        row.className = "habit-row";
+        row.draggable = true;
+
+        row.innerHTML = `
+          <div class="habit-left">
+            <span class="drag-handle">☰</span>
+            <span class="habit-name">${escapeHtml(habit)}</span>
+          </div>
+          <button class="delete-btn" onclick="deleteHabit(${index})">×</button>
+        `;
+
+        row.addEventListener("dragstart", () => {
+          draggedIndex = index;
+          row.classList.add("dragging");
+        });
+
+        row.addEventListener("dragend", () => {
+          draggedIndex = null;
+          row.classList.remove("dragging");
+          document.querySelectorAll(".habit-row").forEach((item) => item.classList.remove("drag-over"));
+        });
+
+        row.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          row.classList.add("drag-over");
+        });
+
+        row.addEventListener("dragleave", () => {
+          row.classList.remove("drag-over");
+        });
+
+        row.addEventListener("drop", (e) => {
+          e.preventDefault();
+          row.classList.remove("drag-over");
+          moveHabitByDrag(draggedIndex, index);
+        });
+
+        list.appendChild(row);
+      });
+    }
+
+    function renderStats() {
+      const today = getTodayStats();
+      const month = getMonthStats();
+
+      document.getElementById("todayRate").textContent = `${today.rate}%`;
+      document.getElementById("todayDoneCount").textContent = today.done;
+      document.getElementById("todayRemainCount").textContent = today.remain;
+      document.getElementById("todayTotalCount").textContent = today.total;
+
+      document.getElementById("monthPercent").textContent = `${month.rate}%`;
+      document.getElementById("monthSummary").textContent = `${month.done} / ${month.totalPossible} 완료`;
+      document.getElementById("monthProgressFill").style.width = `${month.rate}%`;
+    }
+
+    function renderCheckTable() {
+      const table = document.getElementById("checkTable");
+      const habits = getHabits();
+
+      let thead = `<thead><tr><th>습관</th>`;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const todayClass = day === currentDay ? "today-col" : "";
+        thead += `<th class="${todayClass}">${day}</th>`;
+      }
+      thead += `</tr></thead>`;
+
+      let tbody = `<tbody>`;
+
+      habits.forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        tbody += `<tr><td>${escapeHtml(habit)}</td>`;
+
+        for (let day = 0; day < daysInMonth; day++) {
+          const checked = checks[day] ? "checked" : "";
+          const todayClass = day + 1 === currentDay ? "today-col" : "";
+
+          tbody += `
+            <td class="${todayClass}">
+              <input
+                class="day-check"
+                type="checkbox"
+                ${checked}
+                onchange="toggleCheck('${escapeJsString(habit)}', ${day}, this.checked)"
+              />
+            </td>
+          `;
+        }
+
+        tbody += `</tr>`;
+      });
+
+      tbody += `</tbody>`;
+      table.innerHTML = thead + tbody;
+    }
+
+    function renderAnalysis() {
+      const wrap = document.getElementById("analysisList");
+      const habits = getHabits();
+
+      if (habits.length === 0) {
+        wrap.innerHTML = `<div class="empty-text">분석할 습관이 없습니다.</div>`;
+        return;
+      }
+
+      let html = "";
+
+      habits.forEach((habit) => {
+        const checks = ensureHabitData(habit);
+        const done = checks.filter(Boolean).length;
+        const fail = daysInMonth - done;
+        const percent = Math.round((done / daysInMonth) * 100);
+
+        html += `
+          <div class="analysis-item">
+            <div class="analysis-top">
+              <div class="analysis-name">${escapeHtml(habit)}</div>
+              <div class="analysis-percent">${percent}%</div>
+            </div>
+            <div class="small-progress">
+              <div class="small-fill" style="width:${percent}%"></div>
+            </div>
+            <div class="analysis-sub">
+              <span>완료 ${done}</span>
+              <span>실패 ${fail}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      wrap.innerHTML = html;
+    }
+
+    function createOrUpdateDoughnut(chartRef, canvasId, dataValues, centerTextLabel) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+
+      if (chartRef) chartRef.destroy();
+
+      return new Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: ["완료", "남음"],
+          datasets: [{
+            data: dataValues,
+            backgroundColor: ["#f4c542", "#24242b"],
+            borderColor: ["#f4c542", "#24242b"],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "72%",
+          plugins: {
+            legend: {
+              labels: { color: "#f5f5f7" }
+            }
+          }
+        },
+        plugins: [{
+          id: "centerTextPlugin",
+          afterDraw(chart) {
+            const { ctx } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data || !meta.data.length) return;
+
+            const x = meta.data[0].x;
+            const y = meta.data[0].y;
+            const total = dataValues[0] + dataValues[1];
+            const percent = total === 0 ? 0 : Math.round((dataValues[0] / total) * 100);
+
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#f5f5f7";
+            ctx.font = "bold 28px Arial";
+            ctx.fillText(`${percent}%`, x, y + 8);
+            ctx.fillStyle = "#9a9aa3";
+            ctx.font = "12px Arial";
+            ctx.fillText(centerTextLabel, x, y + 30);
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    function renderCharts() {
+      const today = getTodayStats();
+      const month = getMonthStats();
+
+      const dailyCounts = getDailySuccessCounts();
+      const dayLabels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
+      const habitNames = getHabits();
+      const habitPercents = getHabitPercentages();
+
+      todayDonutChart = createOrUpdateDoughnut(
+        todayDonutChart,
+        "todayDonutChart",
+        [today.done, today.remain],
+        `${today.done}/${today.total}`
+      );
+
+      const monthRemain = Math.max(month.totalPossible - month.done, 0);
+      monthDonutChart = createOrUpdateDoughnut(
+        monthDonutChart,
+        "monthDonutChart",
+        [month.done, monthRemain],
+        `${month.done}/${month.totalPossible}`
+      );
+
+      if (dailySuccessChart) dailySuccessChart.destroy();
+      dailySuccessChart = new Chart(document.getElementById("dailySuccessChart"), {
+        type: "line",
+        data: {
+          labels: dayLabels,
+          datasets: [{
+            label: "일별 완료 수",
+            data: dailyCounts,
+            borderColor: "#f4c542",
+            backgroundColor: "rgba(244,197,66,0.18)",
+            tension: 0.25,
+            fill: true,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: "#f5f5f7" }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9a9aa3" },
+              grid: { color: "#1b1b20" }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: "#9a9aa3", stepSize: 1 },
+              grid: { color: "#1b1b20" }
+            }
+          }
+        }
+      });
+
+      if (habitProgressChart) habitProgressChart.destroy();
+      habitProgressChart = new Chart(document.getElementById("habitProgressChart"), {
+        type: "bar",
+        data: {
+          labels: habitNames,
+          datasets: [{
+            label: "진행률(%)",
+            data: habitPercents,
+            backgroundColor: "#f4c542",
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: "y",
+          plugins: {
+            legend: {
+              labels: { color: "#f5f5f7" }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { color: "#9a9aa3" },
+              grid: { color: "#1b1b20" }
+            },
+            y: {
+              ticks: { color: "#f5f5f7" },
+              grid: { color: "#1b1b20" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderAll() {
+      syncHabitData();
+      renderHabitList();
+      renderStats();
+      renderCheckTable();
+      renderAnalysis();
+      renderCharts();
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeJsString(str) {
+      return str.replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+    }
+
+    document.getElementById("habitInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") addHabit();
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .then(() => console.log("서비스 워커 등록 성공"))
+          .catch((error) => console.log("서비스 워커 등록 실패:", error));
+      });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
