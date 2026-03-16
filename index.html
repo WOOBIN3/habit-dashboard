@@ -325,18 +325,21 @@
       color: #fff;
     }
 
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #09090c;
-    }
+.table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #09090c;
+  -webkit-overflow-scrolling: touch;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1000px;
-    }
+table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
 
     thead th {
       position: sticky;
@@ -350,11 +353,18 @@
       border-bottom: 1px solid var(--line);
     }
 
-    thead th:first-child {
-      text-align: left;
-      min-width: 170px;
-      padding-left: 14px;
-    }
+thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #0e0e12;
+  text-align: left;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  padding-left: 14px;
+  box-shadow: 1px 0 0 #232327;
+}
 
     tbody td {
       text-align: center;
@@ -362,15 +372,29 @@
       border-bottom: 1px solid #17171c;
     }
 
-    tbody td:first-child {
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      background: #0b0b0f;
-      text-align: left;
-      padding-left: 14px;
-      font-weight: 700;
-    }
+tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #0b0b0f;
+  text-align: left;
+  padding-left: 14px;
+  font-weight: 700;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 1px 0 0 #232327;
+}
+
+thead th:not(:first-child),
+tbody td:not(:first-child) {
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+}
 
     .today-col {
       background: rgba(244,197,66,0.08);
@@ -489,6 +513,23 @@
         grid-template-columns: 1fr;
       }
     }
+    @media (max-width: 900px) {
+  thead th:first-child,
+  tbody td:first-child {
+    position: static;
+    left: auto;
+    z-index: auto;
+    box-shadow: none;
+  }
+
+  thead th:first-child {
+    background: #0e0e12;
+  }
+
+  tbody td:first-child {
+    background: #0b0b0f;
+  }
+}
   </style>
 </head>
 <body>
@@ -610,6 +651,8 @@ const SUPABASE_ANON_KEY = "sb_publishable_7_M136eKhaNh0ElgG3q2Iw_t82JEyMl";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 console.log("Supabase 연결 완료");
+
+
     const STORAGE_KEY = "habitDashboardDataPWA";
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -618,15 +661,7 @@ console.log("Supabase 연결 완료");
     const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
     const monthKey = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
 
-    const defaultHabits = [
-      "6시 기상",
-      "운동",
-      "독서",
-      "사업 아이디어 정리",
-      "깊이 있는 집중",
-      "일찍 자기",
-      "콘텐츠 인풋"
-    ];
+    const defaultHabits = [];
 
     let draggedIndex = null;
 
@@ -644,22 +679,27 @@ console.log("Supabase 연결 완료");
       appState.monthData[monthKey] = {};
     }
 
-    function loadState() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return null;
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error("저장 데이터 불러오기 실패:", error);
-        return null;
-      }
-    }
-
-async function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+function loadState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return null;
 
   try {
-    // 기존 habits 테이블 비우기
+    return JSON.parse(saved);
+  } catch (error) {
+    console.error("저장 데이터 불러오기 실패:", error);
+    return null;
+  }
+}
+
+async function saveState() {
+  console.log("saveState 실행됨");
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+    const habits = appState.habits || [];
+    console.log("현재 habits:", habits);
+
     const { error: deleteError } = await supabaseClient
       .from("habits")
       .delete()
@@ -670,10 +710,11 @@ async function saveState() {
       return;
     }
 
-    // 현재 appState.habits를 habits 테이블에 다시 저장
-    const rows = appState.habits.map((name) => ({
-      name: name
+    const rows = habits.map((habit) => ({
+      name: typeof habit === "string" ? habit : habit.name
     }));
+
+    console.log("저장할 rows:", rows);
 
     if (rows.length > 0) {
       const { error: insertError } = await supabaseClient
@@ -687,130 +728,179 @@ async function saveState() {
     }
 
     console.log("Supabase habits 저장 완료");
-  } catch (e) {
-    console.error("saveState 오류:", e);
+  } catch (error) {
+    console.error("saveState 전체 에러:", error.message);
   }
 }
 
-    function getHabits() {
-      return appState.habits;
+async function loadHabitsFromSupabase() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("habits")
+      .select("name")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Supabase habits 불러오기 실패:", error.message);
+      return;
     }
 
-    function getMonthChecks() {
-      if (!appState.monthData[monthKey]) {
-        appState.monthData[monthKey] = {};
-      }
-      return appState.monthData[monthKey];
+    const habits = (data || []).map((h) => h.name);
+
+    appState.habits = habits;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+    console.log("Supabase habits 불러옴:", habits);
+
+    renderAll();
+  } catch (error) {
+    console.error("Supabase habits 로드 전체 에러:", error.message);
+  }
+}
+
+function getHabits() {
+  return appState.habits;
+}
+
+function getMonthChecks() {
+  if (!appState.monthData[monthKey]) {
+    appState.monthData[monthKey] = {};
+  }
+  return appState.monthData[monthKey];
+}
+
+function ensureHabitData(habitName) {
+  const monthChecks = getMonthChecks();
+
+  if (!monthChecks[habitName]) {
+    monthChecks[habitName] = Array(daysInMonth).fill(false);
+  }
+
+  if (monthChecks[habitName].length !== daysInMonth) {
+    const newArr = Array(daysInMonth).fill(false);
+    for (let i = 0; i < Math.min(monthChecks[habitName].length, daysInMonth); i++) {
+      newArr[i] = monthChecks[habitName][i];
     }
+    monthChecks[habitName] = newArr;
+  }
 
-    function ensureHabitData(habitName) {
-      const monthChecks = getMonthChecks();
+  return monthChecks[habitName];
+}
 
-      if (!monthChecks[habitName]) {
-        monthChecks[habitName] = Array(daysInMonth).fill(false);
-      }
+function syncHabitData() {
+  const habits = getHabits();
+  const monthChecks = getMonthChecks();
 
-      if (monthChecks[habitName].length !== daysInMonth) {
-        const newArr = Array(daysInMonth).fill(false);
-        for (let i = 0; i < Math.min(monthChecks[habitName].length, daysInMonth); i++) {
-          newArr[i] = monthChecks[habitName][i];
-        }
-        monthChecks[habitName] = newArr;
-      }
+  habits.forEach((habit) => ensureHabitData(habit));
 
-      return monthChecks[habitName];
+  Object.keys(monthChecks).forEach((habitName) => {
+    if (!habits.includes(habitName)) {
+      delete monthChecks[habitName];
     }
+  });
+}
 
-    function syncHabitData() {
-      const habits = getHabits();
-      const monthChecks = getMonthChecks();
+function addHabit() {
+  const input = document.getElementById("habitInput");
+  const value = input.value.trim();
 
-      habits.forEach((habit) => ensureHabitData(habit));
+  if (!value) {
+    alert("습관 이름을 입력해줘.");
+    return;
+  }
 
-      Object.keys(monthChecks).forEach((habitName) => {
-        if (!habits.includes(habitName)) {
-          delete monthChecks[habitName];
-        }
-      });
+  const habits = getHabits();
 
-      saveState();
+  if (habits.includes(value)) {
+    alert("이미 있는 습관이야.");
+    return;
+  }
+
+  habits.push(value);
+  ensureHabitData(value);
+
+  input.value = "";
+
+  saveState();
+  renderAll();
+}
+
+function deleteHabit(index) {
+  const habits = getHabits();
+  const habitName = habits[index];
+
+  if (!confirm(`"${habitName}" 습관을 삭제할까?`)) return;
+
+  habits.splice(index, 1);
+  delete getMonthChecks()[habitName];
+
+  saveState();
+  renderAll();
+}
+
+function setTodayAll(value) {
+  getHabits().forEach((habit) => {
+    const checks = ensureHabitData(habit);
+    checks[currentDay - 1] = value;
+  });
+
+  saveState();
+  renderAll();
+}
+
+function setMonthAll(value) {
+  getHabits().forEach((habit) => {
+    const checks = ensureHabitData(habit);
+    for (let i = 0; i < daysInMonth; i++) {
+      checks[i] = value;
     }
+  });
 
-    function addHabit() {
-      const input = document.getElementById("habitInput");
-      const value = input.value.trim();
+  saveState();
+  renderAll();
+}
 
-      if (!value) {
-        alert("습관 이름을 입력해줘.");
-        return;
-      }
+function toggleCheck(habitName, dayIndex, checked) {
+  const checks = ensureHabitData(habitName);
+  checks[dayIndex] = checked;
 
-      const habits = getHabits();
-      if (habits.includes(value)) {
-        alert("이미 있는 습관이야.");
-        return;
-      }
+const date = new Date(currentYear, currentMonth - 1, dayIndex + 1)
+  .toISOString()
+  .split("T")[0];
 
-      habits.push(value);
-      ensureHabitData(value);
-      saveState();
-      input.value = "";
-      renderAll();
+supabaseClient
+  .from("habit_checks")
+  .upsert({
+    habit_name: habitName,
+    check_date: date,
+    checked: checked
+  })
+  .then(({ error }) => {
+    if (error) {
+      console.error("check 저장 실패:", error.message);
+    } else {
+      console.log("check 저장 완료:", habitName, date, checked);
     }
+  });
 
-    function deleteHabit(index) {
-      const habits = getHabits();
-      const habitName = habits[index];
+  saveState();
+  renderStats();
+  renderCheckTable();
+  renderAnalysis();
+  renderCharts();
+}
 
-      if (!confirm(`"${habitName}" 습관을 삭제할까?`)) return;
+function moveHabitByDrag(fromIndex, toIndex) {
+  const habits = getHabits();
+  if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
 
-      habits.splice(index, 1);
-      delete getMonthChecks()[habitName];
-      saveState();
-      renderAll();
-    }
+  const moved = habits[fromIndex];
+  habits.splice(fromIndex, 1);
+  habits.splice(toIndex, 0, moved);
 
-    function setTodayAll(value) {
-      getHabits().forEach((habit) => {
-        const checks = ensureHabitData(habit);
-        checks[currentDay - 1] = value;
-      });
-      saveState();
-      renderAll();
-    }
-
-    function setMonthAll(value) {
-      getHabits().forEach((habit) => {
-        const checks = ensureHabitData(habit);
-        for (let i = 0; i < daysInMonth; i++) {
-          checks[i] = value;
-        }
-      });
-      saveState();
-      renderAll();
-    }
-
-    function toggleCheck(habitName, dayIndex, checked) {
-      const checks = ensureHabitData(habitName);
-      checks[dayIndex] = checked;
-      saveState();
-      renderStats();
-      renderCheckTable();
-      renderAnalysis();
-      renderCharts();
-    }
-
-    function moveHabitByDrag(fromIndex, toIndex) {
-      const habits = getHabits();
-      if (fromIndex === null || toIndex === null || fromIndex === toIndex) return;
-
-      const moved = habits[fromIndex];
-      habits.splice(fromIndex, 1);
-      habits.splice(toIndex, 0, moved);
-
-      saveState();
-      renderAll();
-    }
+  saveState();
+  renderAll();
+}
 
     function getTodayStats() {
       const habits = getHabits();
@@ -1189,15 +1279,17 @@ async function saveState() {
       if (e.key === "Enter") addHabit();
     });
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js")
-          .then(() => console.log("서비스 워커 등록 성공"))
-          .catch((error) => console.log("서비스 워커 등록 실패:", error));
-      });
-    }
+//    if ("serviceWorker" in navigator) {
+//      window.addEventListener("load", () => {
+ //       navigator.serviceWorker.register("./service-worker.js")
+ //         .then(() => console.log("서비스 워커 등록 성공"))
+  //        .catch((error) => console.log("서비스 워커 등록 실패:", error));
+ //     });
+ //   }
 
-    renderAll();
-  </script>
+ window.addEventListener("load", () => {
+  loadHabitsFromSupabase();
+});
+ </script>
 </body>
 </html>
