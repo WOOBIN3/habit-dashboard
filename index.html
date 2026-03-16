@@ -655,9 +655,42 @@ console.log("Supabase 연결 완료");
       }
     }
 
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+async function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+  try {
+    // 기존 habits 테이블 비우기
+    const { error: deleteError } = await supabaseClient
+      .from("habits")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    if (deleteError) {
+      console.error("기존 habits 삭제 실패:", deleteError.message);
+      return;
     }
+
+    // 현재 appState.habits를 habits 테이블에 다시 저장
+    const rows = appState.habits.map((name) => ({
+      name: name
+    }));
+
+    if (rows.length > 0) {
+      const { error: insertError } = await supabaseClient
+        .from("habits")
+        .insert(rows);
+
+      if (insertError) {
+        console.error("habits 저장 실패:", insertError.message);
+        return;
+      }
+    }
+
+    console.log("Supabase habits 저장 완료");
+  } catch (e) {
+    console.error("saveState 오류:", e);
+  }
+}
 
     function getHabits() {
       return appState.habits;
