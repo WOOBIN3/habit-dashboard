@@ -6,7 +6,7 @@
   <title>습관 대시보드</title>
 
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#10131a" />
+  <meta name="theme-color" content="#050505" />
   <link rel="icon" href="icon-192-v3.png">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,20 +16,21 @@
     * { box-sizing: border-box; }
 
     :root {
-      --bg: #0b0e14;
-      --bg-2: #111623;
-      --card: rgba(20, 26, 36, 0.88);
-      --card-strong: rgba(24, 31, 44, 0.96);
-      --line: rgba(255, 255, 255, 0.07);
-      --line-2: rgba(255, 255, 255, 0.12);
-      --text: #f3f6fb;
-      --muted: #98a2b3;
-      --accent: #6ea8fe;
-      --accent-2: #3b82f6;
-      --green: #22c55e;
-      --danger: #ff6b6b;
-      --warning: #f5c451;
-      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      --bg: #050505;
+      --bg-soft: #0a0908;
+      --card: #111111;
+      --card-2: #171514;
+      --panel: #0d0d0d;
+      --line: #2a2621;
+      --line-soft: #1d1a16;
+      --text: #f5f1e8;
+      --muted: #a79f91;
+      --accent: #c9a44c;
+      --accent-strong: #e0bc68;
+      --accent-deep: #8d6a2a;
+      --green: #7ecb74;
+      --danger: #c96a5d;
+      --shadow: 0 18px 40px rgba(0,0,0,0.42);
       --radius-xl: 28px;
       --radius-lg: 22px;
       --radius-md: 16px;
@@ -41,38 +42,38 @@
       padding: 0;
       min-height: 100%;
       background:
-        radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(34,197,94,0.08), transparent 24%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        radial-gradient(circle at top left, rgba(201,164,76,0.08), transparent 22%),
+        radial-gradient(circle at top right, rgba(141,106,42,0.06), transparent 20%),
+        linear-gradient(180deg, #050505 0%, #090909 100%);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     body {
-      padding: 20px 14px 40px;
+      padding: 18px;
     }
 
     .container {
-      max-width: 1380px;
+      max-width: 1480px;
       margin: 0 auto;
     }
 
     .app-header {
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 30;
       margin-bottom: 18px;
       padding: 14px 6px 18px;
-      backdrop-filter: blur(16px);
-      background: rgba(11, 14, 20, 0.55);
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      background: rgba(5, 5, 5, 0.72);
+      border-bottom: 1px solid rgba(201,164,76,0.08);
     }
 
-    .header-top {
+    .header-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 14px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
@@ -80,46 +81,52 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-height: 32px;
-      padding: 0 12px;
+      min-height: 34px;
+      padding: 0 14px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      color: var(--muted);
+      background: linear-gradient(180deg, rgba(201,164,76,0.08), rgba(201,164,76,0.03));
+      color: var(--accent-strong);
       font-size: 13px;
       font-weight: 700;
       margin-bottom: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
     h1 {
       margin: 0;
-      font-size: 40px;
+      font-size: 48px;
       font-weight: 900;
-      letter-spacing: -0.04em;
+      letter-spacing: -1px;
       line-height: 1.05;
+      color: var(--text);
+      text-shadow: 0 2px 20px rgba(0,0,0,0.35);
     }
 
     .header-sub {
+      margin-top: 10px;
       color: var(--muted);
       font-size: 15px;
-      margin-top: 8px;
     }
 
     .header-date {
-      align-self: center;
-      padding: 12px 16px;
-      border: 1px solid var(--line);
+      min-height: 48px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 18px;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #161311 0%, #0f0d0c 100%);
+      color: var(--accent-strong);
       font-size: 14px;
-      font-weight: 700;
-      white-space: nowrap;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
-    .hero-grid {
+    .top-grid {
       display: grid;
-      grid-template-columns: 1.7fr 1fr;
+      grid-template-columns: 1.6fr 1fr;
       gap: 18px;
       margin-bottom: 18px;
     }
@@ -134,8 +141,18 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
+      gap: 18px;
       margin-bottom: 18px;
+    }
+
+    .analysis-section {
+      margin-bottom: 18px;
+    }
+
+    .analysis-grid-wide {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
     }
 
     .bottom-grid {
@@ -151,86 +168,95 @@
       gap: 18px;
     }
 
-    .analysis-grid-wide {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
     .card {
-      background: linear-gradient(180deg, rgba(23, 29, 41, 0.94) 0%, rgba(17, 22, 32, 0.98) 100%);
+      background: linear-gradient(180deg, var(--card-2) 0%, var(--card) 100%);
       border: 1px solid var(--line);
       border-radius: var(--radius-xl);
+      padding: 22px;
       box-shadow: var(--shadow);
-      padding: 20px;
+      height: auto;
+      position: relative;
       overflow: hidden;
     }
 
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 22%);
+    }
+
     .card-title {
-      color: var(--muted);
       font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .section-title {
-      margin: 0 0 8px;
-      font-size: 26px;
+      font-size: 30px;
       font-weight: 900;
-      letter-spacing: -0.03em;
+      margin: 0 0 8px;
+      color: var(--text);
+      position: relative;
+      z-index: 1;
     }
 
     .section-sub {
       color: var(--muted);
       font-size: 14px;
       margin-bottom: 16px;
-    }
-
-    .input-card {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .input-row {
       display: flex;
-      gap: 12px;
-      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .habit-input {
       flex: 1;
-      height: 58px;
+      height: 62px;
       border-radius: 18px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, #0a0a0a 0%, #11100f 100%);
       color: var(--text);
-      padding: 0 18px;
-      font-size: 16px;
+      padding: 0 20px;
+      font-size: 17px;
       outline: none;
-      transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .habit-input::placeholder {
-      color: #7f8a99;
+      color: #6f665a;
     }
 
     .habit-input:focus {
-      border-color: rgba(110,168,254,0.45);
-      box-shadow: 0 0 0 4px rgba(110,168,254,0.12);
+      border-color: rgba(201,164,76,0.6);
+      box-shadow: 0 0 0 4px rgba(201,164,76,0.10);
     }
 
     .add-btn {
-      min-width: 132px;
-      height: 58px;
-      border: none;
+      min-width: 150px;
+      height: 62px;
+      border: 1px solid #8d6a2a;
       border-radius: 18px;
-      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-      color: white;
-      font-size: 15px;
-      font-weight: 800;
+      background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent) 52%, #a77c31 100%);
+      color: #16120b;
+      font-size: 16px;
+      font-weight: 900;
       cursor: pointer;
+      box-shadow: 0 10px 20px rgba(141,106,42,0.20), inset 0 1px 0 rgba(255,255,255,0.18);
       transition: transform .15s ease, filter .2s ease;
+      position: relative;
+      z-index: 1;
     }
 
     .add-btn:hover,
@@ -251,85 +277,58 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .bulk-btn {
-      min-height: 46px;
-      padding: 12px 14px;
+      min-height: 48px;
+      padding: 0 18px;
       border: 1px solid var(--line);
-      border-radius: 15px;
-      background: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #171412 0%, #100f0e 100%);
       color: var(--text);
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform .15s ease, border-color .2s ease, background .2s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      transition: transform .15s ease, border-color .2s ease;
     }
 
     .bulk-btn:hover {
-      border-color: var(--line-2);
-      background: rgba(255,255,255,0.06);
+      border-color: #3a332a;
     }
 
-    .hint, .footer-note, .empty-text {
+    .hint {
       color: var(--muted);
       font-size: 13px;
+      margin-top: 8px;
+      position: relative;
+      z-index: 1;
     }
 
-    .hero-progress {
+    .big-progress {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      min-height: 100%;
-      gap: 16px;
-    }
-
-    .hero-metric {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      min-height: 230px;
+      position: relative;
+      z-index: 1;
     }
 
     .big-percent {
       font-size: 58px;
-      line-height: 1;
       font-weight: 900;
-      letter-spacing: -0.05em;
-      color: #f8fbff;
+      line-height: 1;
+      color: var(--accent-strong);
+      text-shadow: 0 0 24px rgba(201,164,76,0.08);
     }
 
     .big-sub {
       color: var(--muted);
       font-size: 14px;
-    }
-
-    .progress-bar,
-    .small-progress {
-      width: 100%;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.05);
-      border-radius: 999px;
-    }
-
-    .progress-bar { height: 12px; }
-    .small-progress { height: 9px; }
-
-    .progress-fill,
-    .small-fill {
-      height: 100%;
-      transition: width .25s ease;
-    }
-
-    .progress-fill {
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent), #9bc4ff);
-    }
-
-    .small-fill {
-      width: 0%;
-      background: linear-gradient(90deg, var(--green), #7ceaa3);
     }
 
     .hero-mini-grid {
@@ -342,7 +341,8 @@
       padding: 14px;
       border-radius: 18px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.035);
+      background: linear-gradient(180deg, #151210 0%, #0d0c0b 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
     .hero-mini-label {
@@ -352,76 +352,159 @@
     }
 
     .hero-mini-value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
-      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .progress-bar,
+    .small-progress,
+    .habit-progress-bar {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #15120f;
+      border-radius: 999px;
+    }
+
+    .progress-bar {
+      height: 12px;
+    }
+
+    .small-progress {
+      height: 8px;
+    }
+
+    .habit-progress-bar {
+      height: 8px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill,
+    .small-fill,
+    .habit-progress-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill {
+      width: 0%;
+      background: linear-gradient(90deg, #8d6a2a 0%, var(--accent) 45%, var(--accent-strong) 100%);
+      box-shadow: 0 0 16px rgba(201,164,76,0.22);
+    }
+
+    .small-fill {
+      width: 0%;
+      background: linear-gradient(90deg, #7a5d25 0%, var(--accent) 100%);
+    }
+
+    .habit-progress-fill {
+      width: 0%;
+      background: linear-gradient(90deg, #6f5322 0%, #b98f3c 55%, #e0bc68 100%);
+      box-shadow: 0 0 10px rgba(201,164,76,0.18);
     }
 
     .stat-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.025) 100%);
+      background: linear-gradient(180deg, #151311 0%, #0f0e0d 100%);
       border: 1px solid var(--line);
       border-radius: 22px;
-      padding: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 24%);
     }
 
     .stat-label {
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
       margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .stat-value {
-      font-size: 38px;
+      font-size: 42px;
       line-height: 1;
       font-weight: 900;
-      letter-spacing: -0.04em;
-      color: #f8fbff;
+      color: var(--accent-strong);
       margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
     }
 
     .stat-sub {
-      color: #7f8a99;
-      font-size: 12px;
+      color: #7e766a;
+      font-size: 13px;
+      position: relative;
+      z-index: 1;
     }
 
     .habit-list {
-      margin-top: 6px;
+      margin-top: 8px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .habit-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 14px;
+      gap: 14px;
+      background: linear-gradient(180deg, #121111 0%, #0b0b0b 100%);
       border: 1px solid var(--line);
       border-radius: 20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.03) 100%);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-      transition: transform .15s ease, border-color .2s ease, background .2s ease;
+      padding: 14px 16px;
       cursor: grab;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.24);
     }
 
     .habit-row:hover {
-      border-color: rgba(255,255,255,0.14);
+      border-color: #40372d;
       transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.26);
     }
 
-    .habit-row.dragging { opacity: 0.45; }
+    .habit-row:active {
+      transform: scale(0.985);
+    }
+
+    .habit-row.today-done {
+      border-color: rgba(201,164,76,0.42);
+      box-shadow:
+        0 12px 24px rgba(0,0,0,0.28),
+        0 0 0 1px rgba(201,164,76,0.18),
+        0 0 18px rgba(201,164,76,0.10);
+      background: linear-gradient(180deg, #171411 0%, #0d0b0a 100%);
+    }
+
+    .habit-row.dragging {
+      opacity: 0.45;
+    }
+
     .habit-row.drag-over {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(110,168,254,0.18);
+      box-shadow: 0 0 0 2px rgba(201,164,76,0.16);
     }
 
     .habit-left {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
+      align-items: flex-start;
+      gap: 14px;
       min-width: 0;
+      flex: 1;
     }
 
     .drag-handle {
@@ -430,31 +513,78 @@
       border-radius: 14px;
       display: grid;
       place-items: center;
-      background: rgba(255,255,255,0.05);
+      background: linear-gradient(180deg, #1a1714 0%, #11100f 100%);
+      border: 1px solid var(--line-soft);
       color: var(--muted);
-      font-size: 18px;
-      user-select: none;
+      font-size: 19px;
       flex-shrink: 0;
+      user-select: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
     .habit-text {
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .habit-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .habit-name {
-      font-size: 18px;
-      font-weight: 800;
+      font-size: 19px;
+      font-weight: 900;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(201,164,76,0.18);
+      background: linear-gradient(180deg, rgba(201,164,76,0.10), rgba(201,164,76,0.03));
+      color: var(--accent-strong);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      width: fit-content;
     }
 
     .habit-meta {
-      color: var(--muted);
       font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .habit-progress-percent {
+      color: var(--accent-strong);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .habit-status {
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .habit-row.today-done .habit-status {
+      color: var(--accent-strong);
+      font-weight: 700;
     }
 
     .habit-right {
@@ -464,27 +594,38 @@
       flex-shrink: 0;
     }
 
-    .move-btn,
-    .delete-btn {
-      width: 40px;
-      height: 40px;
+    .move-btn {
+      width: 38px;
+      height: 38px;
       border: 1px solid var(--line);
-      border-radius: 13px;
-      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #181512 0%, #11100f 100%);
       color: var(--text);
       cursor: pointer;
       font-size: 16px;
-      font-weight: 800;
-      transition: transform .15s ease, background .2s ease, border-color .2s ease;
+      font-weight: 900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .move-btn:hover {
+      border-color: #4a3f31;
     }
 
     .delete-btn {
-      font-size: 20px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid #4a2d29;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #1b1211 0%, #120d0c 100%);
+      color: var(--text);
+      font-size: 22px;
       font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
     .delete-btn:hover {
-      background: var(--danger);
+      background: linear-gradient(180deg, #b6574b 0%, var(--danger) 100%);
       color: white;
       border-color: transparent;
     }
@@ -494,8 +635,10 @@
       overflow-y: hidden;
       border: 1px solid var(--line);
       border-radius: 20px;
-      background: rgba(255,255,255,0.025);
+      background: linear-gradient(180deg, #0d0c0b 0%, #090909 100%);
       -webkit-overflow-scrolling: touch;
+      position: relative;
+      z-index: 1;
     }
 
     table {
@@ -509,7 +652,7 @@
       position: sticky;
       top: 0;
       z-index: 2;
-      background: #111621;
+      background: #110f0d;
       color: var(--muted);
       font-size: 12px;
       padding: 12px 8px;
@@ -521,26 +664,27 @@
       position: sticky;
       left: 0;
       z-index: 4;
-      background: #111621;
+      background: #110f0d;
       text-align: left;
       width: 150px;
       min-width: 150px;
       max-width: 150px;
       padding-left: 14px;
-      box-shadow: 1px 0 0 rgba(255,255,255,0.05);
+      box-shadow: 1px 0 0 #23201c;
     }
 
     tbody td {
       text-align: center;
-      padding: 9px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.035);
+      padding: 8px;
+      border-bottom: 1px solid #15120f;
+      position: relative;
     }
 
     tbody td:first-child {
       position: sticky;
       left: 0;
       z-index: 3;
-      background: #0f141d;
+      background: #0d0c0b;
       text-align: left;
       padding-left: 14px;
       font-weight: 700;
@@ -550,7 +694,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 1px 0 0 rgba(255,255,255,0.05);
+      box-shadow: 1px 0 0 #23201c;
+      color: var(--text);
     }
 
     thead th:not(:first-child),
@@ -561,22 +706,57 @@
     }
 
     .today-col {
-      background: rgba(110,168,254,0.1) !important;
+      background: rgba(201,164,76,0.10) !important;
     }
 
     .day-check {
-      width: 17px;
-      height: 17px;
+      width: 16px;
+      height: 16px;
       accent-color: var(--accent);
       cursor: pointer;
+      position: relative;
+      z-index: 2;
+      transform: scale(1.02);
+    }
+
+    .check-cell-pulse::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-strong);
+      box-shadow: 0 0 16px rgba(201,164,76,0.32);
+      transform: translate(-50%, -50%);
+      animation: pulseGold 0.75s ease-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes pulseGold {
+      0% {
+        transform: translate(-50%, -50%) scale(0.45);
+        opacity: 0.95;
+      }
+      70% {
+        transform: translate(-50%, -50%) scale(1.55);
+        opacity: 0.26;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
     }
 
     .analysis-item {
-      background: rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, #13110f 0%, #0c0b0a 100%);
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 14px;
       min-height: 112px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20);
     }
 
     .analysis-top {
@@ -592,10 +772,11 @@
       font-weight: 800;
       line-height: 1.35;
       word-break: keep-all;
+      color: var(--text);
     }
 
     .analysis-percent {
-      color: var(--accent);
+      color: var(--accent-strong);
       font-weight: 900;
       font-size: 15px;
       flex-shrink: 0;
@@ -605,7 +786,7 @@
       display: flex;
       justify-content: space-between;
       margin-top: 8px;
-      color: #7f8a99;
+      color: #7e766a;
       font-size: 12px;
     }
 
@@ -616,58 +797,50 @@
     .chart-wrap {
       position: relative;
       height: 240px;
-      padding-top: 4px;
+      z-index: 1;
     }
 
     .chart-wrap.tall {
-      height: 300px;
+      height: 290px;
     }
 
-    @media (max-width: 1320px) {
-      .hero-grid,
+    .empty-text {
+      color: var(--muted);
+      font-size: 15px;
+      padding: 10px 0;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 1400px) {
+      .analysis-grid-wide {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 1280px) {
+      .top-grid,
       .main-grid,
+      .stats-grid,
       .bottom-grid,
       .bottom-wide-grid {
         grid-template-columns: 1fr;
       }
+    }
 
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
+    @media (max-width: 1000px) {
       .analysis-grid-wide {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
     @media (max-width: 900px) {
-      body { padding: 12px 10px 34px; }
-
-      .app-header {
-        padding: 10px 4px 16px;
-      }
-
-      h1 {
-        font-size: 31px;
-      }
-
-      .header-sub {
-        font-size: 14px;
-      }
-
-      .input-row {
-        flex-direction: column;
-      }
-
-      .habit-input,
-      .add-btn {
-        width: 100%;
-      }
-
-      .bulk-actions {
-        grid-template-columns: 1fr 1fr;
-      }
-
       thead th:first-child,
       tbody td:first-child {
         position: static;
@@ -676,29 +849,41 @@
         box-shadow: none;
       }
 
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
+      thead th:first-child {
+        background: #110f0d;
+      }
+
+      tbody td:first-child {
+        background: #0d0c0b;
       }
     }
 
-    @media (max-width: 700px) {
-      .stats-grid,
-      .analysis-grid-wide,
-      .bulk-actions,
-      .hero-mini-grid {
+    @media (max-width: 820px) {
+      body { padding: 12px; }
+
+      h1 { font-size: 35px; }
+
+      .input-row {
+        flex-direction: column;
+      }
+
+      .add-btn,
+      .habit-input {
+        width: 100%;
+      }
+
+      .bulk-actions {
         grid-template-columns: 1fr;
       }
 
-      .section-title {
-        font-size: 22px;
-      }
+      .stat-value { font-size: 34px; }
+      .big-percent { font-size: 46px; }
+    }
 
-      .big-percent {
-        font-size: 46px;
-      }
-
-      .stat-value {
-        font-size: 32px;
+    @media (max-width: 700px) {
+      .analysis-grid-wide,
+      .hero-mini-grid {
+        grid-template-columns: 1fr;
       }
 
       .habit-row {
@@ -711,13 +896,23 @@
         gap: 6px;
       }
 
-      .habit-name {
-        font-size: 16px;
-      }
-
       .header-date {
         width: 100%;
-        text-align: center;
+      }
+
+      .habit-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .streak-badge {
+        font-size: 10px;
+      }
+
+      .habit-meta {
+        flex-direction: column;
+        gap: 4px;
       }
     }
   </style>
@@ -725,22 +920,20 @@
 <body>
   <div class="container">
     <header class="app-header">
-      <div class="header-top">
+      <div class="header-row">
         <div>
-          <div class="header-badge">📱 PWA Habit Dashboard</div>
+          <div class="header-badge">◆ Obsidian Gold Habit Dashboard</div>
           <h1>습관 대시보드</h1>
-          <div class="header-sub">오늘도 루틴을 이어가자. 작게 해도 계속하면 쌓인다.</div>
+          <div class="header-sub">블랙 & 골드 감성으로 정리한 나만의 루틴 관리 앱</div>
         </div>
         <div id="headerDate" class="header-date"></div>
       </div>
     </header>
 
-    <div class="hero-grid">
-      <div class="card input-card">
-        <div>
-          <div class="section-title">새 습관 추가</div>
-          <div class="section-sub">간단하게 추가하고 바로 체크할 수 있게 만들었어.</div>
-        </div>
+    <div class="top-grid">
+      <div class="card">
+        <div class="section-title">새 습관 추가</div>
+        <div class="section-sub">루틴을 추가하고 바로 관리할 수 있어.</div>
 
         <div class="input-row">
           <input id="habitInput" class="habit-input" type="text" placeholder="예: 운동, 독서, 일찍 자기" />
@@ -754,16 +947,14 @@
           <button class="bulk-btn" onclick="setMonthAll(false)">이번 달 전체 해제</button>
         </div>
 
-        <div class="hint">PC에서는 드래그, 모바일에서는 ↑ ↓ 버튼으로 순서를 바꿀 수 있어.</div>
+        <div class="hint">PC에서는 드래그, 모바일에서는 ↑ ↓ 버튼으로 순서를 바꿀 수 있어. 이제 습관 카드 자체를 눌러도 오늘 체크가 바뀐다.</div>
       </div>
 
       <div class="card">
         <div class="card-title">이번 달 전체 목표 진행률</div>
-        <div class="hero-progress">
-          <div class="hero-metric">
-            <div id="monthPercent" class="big-percent">0%</div>
-            <div id="monthSummary" class="big-sub">0 / 0 완료</div>
-          </div>
+        <div class="big-progress">
+          <div id="monthPercent" class="big-percent">0%</div>
+          <div id="monthSummary" class="big-sub">0 / 0 완료</div>
 
           <div class="progress-bar">
             <div id="monthProgressFill" class="progress-fill"></div>
@@ -786,7 +977,7 @@
     <div class="main-grid">
       <div class="card">
         <div class="section-title">내 습관</div>
-        <div class="section-sub">루틴을 정렬하고 관리하는 영역</div>
+        <div class="section-sub">루틴 순서 변경, 삭제, 관리</div>
         <div id="habitList" class="habit-list"></div>
       </div>
 
@@ -819,14 +1010,14 @@
 
     <div class="card" style="margin-bottom: 18px;">
       <div class="section-title">체크표</div>
-      <div class="section-sub">한 달 전체 체크 현황을 한 번에 볼 수 있어.</div>
+      <div class="section-sub">한 달 전체 체크 현황을 한 번에 볼 수 있습니다.</div>
       <div class="table-wrap">
         <table id="checkTable"></table>
       </div>
-      <div class="footer-note" style="margin-top: 12px;">오늘 날짜 열은 강조되고 체크하면 자동 저장돼.</div>
+      <div class="footer-note">오늘 날짜 열은 강조되고 체크하면 자동 저장됩니다.</div>
     </div>
 
-    <div class="card" style="margin-bottom: 18px;">
+    <div class="card analysis-section">
       <div class="section-title">분석 패널</div>
       <div class="section-sub">습관별 이번 달 완료 비율 요약</div>
       <div id="analysisList" class="analysis-grid-wide"></div>
@@ -913,9 +1104,6 @@ function loadState() {
 }
 
 async function saveState() {
-   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-  console.log("saveState 실행됨");
-
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 
@@ -968,8 +1156,6 @@ async function loadHabitsFromSupabase() {
 
     appState.habits = habits;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-
-    console.log("Supabase habits 불러옴:", habits);
 
     renderAll();
   } catch (error) {
@@ -1079,10 +1265,25 @@ function setMonthAll(value) {
   renderAll();
 }
 
-function toggleCheck(habitName, dayIndex, checked) {
-  const checks = ensureHabitData(habitName);
-  checks[dayIndex] = checked;
+function triggerCheckPulseFromCell(cell) {
+  if (!cell) return;
 
+  cell.classList.remove("check-cell-pulse");
+  void cell.offsetWidth;
+  cell.classList.add("check-cell-pulse");
+
+  setTimeout(() => {
+    cell.classList.remove("check-cell-pulse");
+  }, 750);
+}
+
+function triggerCheckPulse(checkboxEl) {
+  if (!checkboxEl) return;
+  const cell = checkboxEl.closest("td");
+  triggerCheckPulseFromCell(cell);
+}
+
+function saveCheckToSupabase(habitName, dayIndex, checked) {
   const date = new Date(currentYear, currentMonth - 1, dayIndex + 1)
     .toISOString()
     .split("T")[0];
@@ -1101,12 +1302,51 @@ function toggleCheck(habitName, dayIndex, checked) {
         console.log("check 저장 완료:", habitName, date, checked);
       }
     });
+}
+
+function toggleCheck(habitName, dayIndex, checked, checkboxEl) {
+  const checks = ensureHabitData(habitName);
+  checks[dayIndex] = checked;
+
+  saveCheckToSupabase(habitName, dayIndex, checked);
+
+  if (checked) {
+    triggerCheckPulse(checkboxEl);
+  }
 
   saveState();
   renderStats();
   renderCheckTable();
   renderAnalysis();
   renderCharts();
+  renderHabitList();
+}
+
+function toggleTodayFromCard(habitName) {
+  const checks = ensureHabitData(habitName);
+  const newValue = !checks[currentDay - 1];
+  checks[currentDay - 1] = newValue;
+
+  saveCheckToSupabase(habitName, currentDay - 1, newValue);
+
+  if (newValue) {
+    const rows = document.querySelectorAll("#checkTable tbody tr");
+    rows.forEach((row) => {
+      const habitCell = row.querySelector("td");
+      if (!habitCell) return;
+      if (habitCell.textContent.trim() === habitName) {
+        const targetCell = row.querySelectorAll("td")[currentDay];
+        if (targetCell) triggerCheckPulseFromCell(targetCell);
+      }
+    });
+  }
+
+  saveState();
+  renderStats();
+  renderCheckTable();
+  renderAnalysis();
+  renderCharts();
+  renderHabitList();
 }
 
 function moveHabitByDrag(fromIndex, toIndex) {
@@ -1203,11 +1443,40 @@ function getHabitPercentages() {
   });
 }
 
-function getHabitMeta(habit) {
+function getStreak(checks) {
+  let streak = 0;
+
+  for (let i = currentDay - 1; i >= 0; i--) {
+    if (checks[i]) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+function getStreakBadge(streak) {
+  if (streak >= 14) return `🔥 ${streak} DAY STREAK 🏆`;
+  if (streak >= 7) return `🔥 ${streak} DAY STREAK 👑`;
+  return `🔥 ${streak} DAY STREAK`;
+}
+
+function getHabitCardData(habit) {
   const checks = ensureHabitData(habit);
   const done = checks.filter(Boolean).length;
   const todayDone = checks[currentDay - 1];
-  return todayDone ? `오늘 완료 · 이번 달 ${done}/${daysInMonth}` : `오늘 미완료 · 이번 달 ${done}/${daysInMonth}`;
+  const streak = getStreak(checks);
+  const percent = Math.round((done / daysInMonth) * 100);
+
+  return {
+    done,
+    todayDone,
+    streak,
+    percent,
+    streakLabel: getStreakBadge(streak)
+  };
 }
 
 function renderHabitList() {
@@ -1223,15 +1492,27 @@ function renderHabitList() {
 
   habits.forEach((habit, index) => {
     const row = document.createElement("div");
-    row.className = "habit-row";
+    const { done, todayDone, percent, streakLabel } = getHabitCardData(habit);
+
+    row.className = `habit-row ${todayDone ? "today-done" : ""}`;
     row.draggable = true;
 
     row.innerHTML = `
       <div class="habit-left">
         <span class="drag-handle">☰</span>
         <div class="habit-text">
-          <span class="habit-name">${escapeHtml(habit)}</span>
-          <span class="habit-meta">${escapeHtml(getHabitMeta(habit))}</span>
+          <div class="habit-title-row">
+            <span class="habit-name">${escapeHtml(habit)}</span>
+            <span class="streak-badge">${escapeHtml(streakLabel)}</span>
+          </div>
+          <div class="habit-progress-bar">
+            <div class="habit-progress-fill" style="width:${percent}%"></div>
+          </div>
+          <div class="habit-meta">
+            <span class="habit-status">${todayDone ? "오늘 완료됨" : "오늘 미완료"}</span>
+            <span>이번 달 ${done}/${daysInMonth}</span>
+            <span class="habit-progress-percent">${percent}%</span>
+          </div>
         </div>
       </div>
       <div class="habit-right">
@@ -1240,6 +1521,12 @@ function renderHabitList() {
         <button class="delete-btn" onclick="deleteHabit(${index})">×</button>
       </div>
     `;
+
+    row.addEventListener("click", (e) => {
+      const target = e.target;
+      if (target.closest(".move-btn") || target.closest(".delete-btn")) return;
+      toggleTodayFromCard(habit);
+    });
 
     row.addEventListener("dragstart", () => {
       draggedIndex = index;
@@ -1315,7 +1602,7 @@ function renderCheckTable() {
             class="day-check"
             type="checkbox"
             ${checked}
-            onchange="toggleCheck('${escapeJsString(habit)}', ${day}, this.checked)"
+            onchange="toggleCheck('${escapeJsString(habit)}', ${day}, this.checked, this)"
           />
         </td>
       `;
@@ -1377,8 +1664,8 @@ function createOrUpdateDoughnut(chartRef, canvasId, dataValues, centerTextLabel)
       labels: ["완료", "남음"],
       datasets: [{
         data: dataValues,
-        backgroundColor: ["#6ea8fe", "#273244"],
-        borderColor: ["#6ea8fe", "#273244"],
+        backgroundColor: ["#c9a44c", "#24201b"],
+        borderColor: ["#c9a44c", "#24201b"],
         borderWidth: 1
       }]
     },
@@ -1386,9 +1673,13 @@ function createOrUpdateDoughnut(chartRef, canvasId, dataValues, centerTextLabel)
       responsive: true,
       maintainAspectRatio: false,
       cutout: "72%",
+      animation: {
+        duration: 1000,
+        easing: "easeOutQuart"
+      },
       plugins: {
         legend: {
-          labels: { color: "#f3f6fb" }
+          labels: { color: "#f5f1e8" }
         }
       }
     },
@@ -1406,10 +1697,10 @@ function createOrUpdateDoughnut(chartRef, canvasId, dataValues, centerTextLabel)
 
         ctx.save();
         ctx.textAlign = "center";
-        ctx.fillStyle = "#f3f6fb";
+        ctx.fillStyle = "#f5f1e8";
         ctx.font = "bold 28px Arial";
         ctx.fillText(`${percent}%`, x, y + 8);
-        ctx.fillStyle = "#98a2b3";
+        ctx.fillStyle = "#a79f91";
         ctx.font = "12px Arial";
         ctx.fillText(centerTextLabel, x, y + 30);
         ctx.restore();
@@ -1450,9 +1741,9 @@ function renderCharts() {
       datasets: [{
         label: "일별 완료 수",
         data: dailyCounts,
-        borderColor: "#6ea8fe",
-        backgroundColor: "rgba(110,168,254,0.18)",
-        tension: 0.28,
+        borderColor: "#c9a44c",
+        backgroundColor: "rgba(201,164,76,0.18)",
+        tension: 0.25,
         fill: true,
         pointRadius: 3
       }]
@@ -1460,20 +1751,24 @@ function renderCharts() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 1200,
+        easing: "easeOutQuart"
+      },
       plugins: {
         legend: {
-          labels: { color: "#f3f6fb" }
+          labels: { color: "#f5f1e8" }
         }
       },
       scales: {
         x: {
-          ticks: { color: "#98a2b3" },
-          grid: { color: "rgba(255,255,255,0.05)" }
+          ticks: { color: "#a79f91" },
+          grid: { color: "#1b1815" }
         },
         y: {
           beginAtZero: true,
-          ticks: { color: "#98a2b3", stepSize: 1 },
-          grid: { color: "rgba(255,255,255,0.05)" }
+          ticks: { color: "#a79f91", stepSize: 1 },
+          grid: { color: "#1b1815" }
         }
       }
     }
@@ -1487,29 +1782,33 @@ function renderCharts() {
       datasets: [{
         label: "진행률(%)",
         data: habitPercents,
-        backgroundColor: "#6ea8fe",
-        borderRadius: 10
+        backgroundColor: "#c9a44c",
+        borderRadius: 8
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: "y",
+      animation: {
+        duration: 1200,
+        easing: "easeOutQuart"
+      },
       plugins: {
         legend: {
-          labels: { color: "#f3f6fb" }
+          labels: { color: "#f5f1e8" }
         }
       },
       scales: {
         x: {
           beginAtZero: true,
           max: 100,
-          ticks: { color: "#98a2b3" },
-          grid: { color: "rgba(255,255,255,0.05)" }
+          ticks: { color: "#a79f91" },
+          grid: { color: "#1b1815" }
         },
         y: {
-          ticks: { color: "#f3f6fb" },
-          grid: { color: "rgba(255,255,255,0.05)" }
+          ticks: { color: "#f5f1e8" },
+          grid: { color: "#1b1815" }
         }
       }
     }
@@ -1517,9 +1816,8 @@ function renderCharts() {
 }
 
 function renderHeaderDate() {
-  const el = document.getElementById("headerDate");
-  const dateText = `${currentYear}.${String(currentMonth).padStart(2, "0")}.${String(currentDay).padStart(2, "0")}`;
-  el.textContent = `오늘 ${dateText}`;
+  const headerDate = document.getElementById("headerDate");
+  headerDate.textContent = `${currentYear}.${String(currentMonth).padStart(2, "0")}.${String(currentDay).padStart(2, "0")}`;
 }
 
 function renderAll() {
