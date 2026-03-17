@@ -947,6 +947,11 @@
           <button class="bulk-btn" onclick="setMonthAll(false)">이번 달 전체 해제</button>
         </div>
 
+        <div class="bulk-actions" style="margin-top: -4px;">
+  <button class="bulk-btn" onclick="exportBackup()">백업 내보내기</button>
+  <button class="bulk-btn" onclick="importBackup()">백업 불러오기</button>
+</div>
+
         <div class="hint">PC에서는 드래그, 모바일에서는 ↑ ↓ 버튼으로 순서를 바꿀 수 있어. 이제 습관 카드 자체를 눌러도 오늘 체크가 바뀐다.</div>
       </div>
 
@@ -1263,6 +1268,75 @@ function setMonthAll(value) {
 
   saveState();
   renderAll();
+}
+
+function exportBackup() {
+  try {
+    const backupData = {
+      exportedAt: new Date().toISOString(),
+      appState
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(backupData, null, 2)],
+      { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date();
+    const fileName = `habit-dashboard-backup-${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}.json`;
+
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    alert("백업 파일이 저장됐어.");
+  } catch (error) {
+    console.error("백업 내보내기 실패:", error);
+    alert("백업 내보내기에 실패했어.");
+  }
+}
+
+function importBackup() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+
+  input.onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+
+      if (!parsed.appState || !parsed.appState.habits || !parsed.appState.monthData) {
+        alert("올바른 백업 파일이 아니야.");
+        return;
+      }
+
+      const shouldImport = confirm("현재 데이터를 덮어쓰고 백업 파일로 복원할까?");
+      if (!shouldImport) return;
+
+      appState.habits = parsed.appState.habits;
+      appState.monthData = parsed.appState.monthData;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      await saveState();
+      renderAll();
+
+      alert("백업 복원이 완료됐어.");
+    } catch (error) {
+      console.error("백업 불러오기 실패:", error);
+      alert("백업 파일을 불러오지 못했어.");
+    }
+  };
+
+  input.click();
 }
 
 function triggerCheckPulseFromCell(cell) {
