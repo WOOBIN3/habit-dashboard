@@ -1,4 +1,4 @@
-const CACHE_NAME = "habit-dashboard-v2";
+const CACHE_NAME = "habit-dashboard-v3";
 const APP_SHELL_FILES = [
   "./",
   "./index.html",
@@ -38,18 +38,18 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    fetch(event.request)
+      .then((networkResponse) => {
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
 
-      return fetch(event.request)
-        .then((networkResponse) => {
-          return networkResponse;
-        })
-        .catch(() => {
           return caches.match("./index.html");
         });
-    })
+      })
   );
 });
