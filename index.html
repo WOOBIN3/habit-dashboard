@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
 
   <title>습관 대시보드</title>
-
+  <meta name="google-site-verification" content="c5WQPkZpUdEpdRVCuPSkMV3IOIIaBlzUD5Evgs4IJnw" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -301,6 +301,8 @@ h1 {
   box-shadow: 0 10px 20px rgba(141,106,42,0.20), inset 0 1px 0 rgba(255,255,255,0.18);
   transition: transform .15s ease, filter .2s ease;
 }
+
+
 
 .install-btn:hover {
   filter: brightness(1.05);
@@ -3172,6 +3174,15 @@ async function initApp() {
     }
 
     initApp();
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+      installBtn.classList.add('hidden');
+    }
+  }
+});
 
 window.addEventListener("online", updateNetworkStatus);
 window.addEventListener("offline", updateNetworkStatus);
