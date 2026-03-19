@@ -1,7 +1,8 @@
 {
   "name": "습관 대시보드",
   "short_name": "습관",
-  "start_url": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
