@@ -4,7 +4,9 @@ const APP_SHELL_FILES = [
   "./index.html",
   "./manifest.json",
   "./icon-192-v3.png",
-  "./icon-512-v3.png"
+  "./icon-512-v3.png",
+  "https://cdn.jsdelivr.net/npm/chart.js",
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
 ];
 
 self.addEventListener("install", (event) => {

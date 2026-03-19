@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="./manifest.json">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>습관 대시보드</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#050505" />
-  <link rel="icon" href="icon-192-v3.png" />
+  <meta name="theme-color" content="#050505">
+  <link rel="icon" href="icon-192-v3.png">
 
   <style>
     * { box-sizing: border-box; }
@@ -516,9 +517,13 @@ h1 {
     .add-btn:active,
     .bulk-btn:active,
     .move-btn:active,
-    .delete-btn:active {
-      transform: scale(0.98);
-    }
+    .delete-btn:active,
+    .edit-btn:active,
+    .save-btn:active,
+    .cancel-btn:active,
+    .logout-btn:active {
+      transform: scale(0.96);
+}
 
     .bulk-actions {
       display: grid;
@@ -704,8 +709,8 @@ h1 {
       border-radius: 20px;
       padding: 14px 16px;
       cursor: grab;
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.24);
+      transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;      box-shadow: 0 8px 20px rgba(0,0,0,0.24);
+      will-change: transform;
     }
 
     .habit-row:hover {
@@ -714,12 +719,22 @@ h1 {
       box-shadow: 0 12px 24px rgba(0,0,0,0.26);
     }
 
+@media (max-width: 700px) {
+  .habit-row:hover {
+    transform: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.24);
+  }
+}
+
     .habit-row:active {
-      transform: scale(0.985);
-    }
+     transform: scale(0.98);
+     opacity: 0.9;
+}
 
     .habit-row.today-done {
-      border-color: rgba(224,188,104,0.52);
+      animation: donePop 0.25s ease;
+
+      border-color: rgba(224,188,104,0.25);
       box-shadow:
         0 14px 28px rgba(0,0,0,0.30),
         0 0 0 1px rgba(224,188,104,0.22),
@@ -728,9 +743,15 @@ h1 {
       background:
         radial-gradient(circle at right top, rgba(224,188,104,0.08), transparent 28%),
         linear-gradient(180deg, #181511 0%, #0d0b0a 100%);
-      transform: translateY(-1px);
+      
+      transform: translateY(-1px) scale(1);
     }
 
+    @keyframes donePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
     .habit-row.dragging { opacity: 0.45; }
 
     .habit-row.drag-over {
@@ -1358,19 +1379,14 @@ h1 {
     font-size: 11px;
   }
 
-  .habit-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: 12px;
-}
-
 .habit-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
-  gap: 12px;
-  min-height: 120px;
+  gap: 14px;
+  min-height: 132px;
+  position: relative;   /* 🔥 추가 */
+  padding: 14px 16px 44px 16px;
 }
 
 .habit-left {
@@ -1379,11 +1395,11 @@ h1 {
 }
 
 .habit-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  align-self: stretch;
-  min-width: 132px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: end;
+  min-width: 140px;
+  height: 100%;
 }
 
 .habit-actions-top {
@@ -1391,13 +1407,13 @@ h1 {
   grid-template-columns: 36px 36px 48px;
   gap: 6px;
   justify-content: end;
+  align-self: flex-start;
 }
 
 .habit-actions-bottom {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: auto;
+  position: absolute;
+  right: 12px;
+  bottom: 0;
 }
 
 .habit-title-row {
@@ -1433,34 +1449,26 @@ h1 {
   margin-bottom: 6px;
 }
 
-.move-btn,
-.delete-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  font-size: 15px;
-}
-
 .edit-btn {
-  min-width: 48px;
-  height: 36px;
-  border-radius: 10px;
+  min-width: 52px;
+  height: 38px;
+  border-radius: 11px;
   font-size: 11px;
 }
 
 .move-btn,
 .delete-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   font-size: 15px;
 }
 
 .edit-btn {
-  min-width: 48px;
-  height: 36px;
+  min-width: 52px;
+  height: 44px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: 12px;
 }
   /* 모바일 카드/버튼 압축 */
 .card,
@@ -2730,13 +2738,14 @@ function renderHabitList() {
       ? ``
       : `
         <div class="habit-actions-top">
-          <button class="move-btn" onclick="moveHabitUp(${index})">↑</button>
-          <button class="move-btn" onclick="moveHabitDown(${index})">↓</button>
-          <button class="edit-btn" onclick="window.editHabit(${index})">수정</button>
+          <button class="move-btn" onclick="event.stopPropagation(); moveHabitUp(${index})">↑</button>
+          <button class="move-btn" onclick="event.stopPropagation(); moveHabitDown(${index})">↓</button>
+          <button class="edit-btn" onclick="event.stopPropagation(); window.editHabit(${index})">수정</button>
         </div>
-        <div class="habit-actions-bottom">
-          <button class="delete-btn" onclick="deleteHabit(${index})">×</button>
-        </div>
+
+       <div class="habit-actions-bottom">
+  <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${index})">✕</button>
+</div>
       `
   }
 </div>
@@ -2776,14 +2785,10 @@ row.addEventListener("drop", (e) => {
 
     row.addEventListener("click", (e) => {
       const target = e.target;
-      if (
-        target.closest(".move-btn") ||
-        target.closest(".delete-btn") ||
-        target.closest(".edit-btn") ||
-        target.closest(".save-btn") ||
-        target.closest(".cancel-btn") ||
-        target.closest(".edit-input")
-      ) return;
+if (
+  target.closest("button") ||
+  target.closest(".edit-input")
+) return;
 
       toggleTodayFromCard(habit.id);
     });
