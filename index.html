@@ -1359,29 +1359,109 @@ h1 {
   }
 
   .habit-row {
-    align-items: flex-start;
-  }
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 12px;
+}
 
-  .habit-right {
-    display: grid;
-    grid-template-columns: repeat(3, 40px);
-    gap: 6px;
-  }
+.habit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 12px;
+  min-height: 120px;
+}
 
-  .habit-title-row {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-  }
+.habit-left {
+  gap: 10px;
+  min-width: 0;
+}
 
-  .streak-badge {
-    font-size: 10px;
-  }
+.habit-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: stretch;
+  min-width: 132px;
+}
 
-  .habit-meta {
-    flex-direction: column;
-    gap: 4px;
-  }
+.habit-actions-top {
+  display: grid;
+  grid-template-columns: 36px 36px 48px;
+  gap: 6px;
+  justify-content: end;
+}
+
+.habit-actions-bottom {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.habit-title-row {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.streak-badge {
+  font-size: 10px;
+}
+
+.habit-meta {
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.drag-handle {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.habit-name {
+  font-size: 17px;
+}
+
+.habit-progress-bar {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.move-btn,
+.delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.edit-btn {
+  min-width: 48px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.move-btn,
+.delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.edit-btn {
+  min-width: 48px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 11px;
+}
   /* 모바일 카드/버튼 압축 */
 .card,
 .stat-card {
@@ -2649,10 +2729,14 @@ function renderHabitList() {
     editingHabitId === habit.id
       ? ``
       : `
-        <button class="move-btn" onclick="moveHabitUp(${index})">↑</button>
-        <button class="move-btn" onclick="moveHabitDown(${index})">↓</button>
-        <button class="edit-btn" onclick="window.editHabit(${index})">수정</button>
-        <button class="delete-btn" onclick="deleteHabit(${index})">×</button>
+        <div class="habit-actions-top">
+          <button class="move-btn" onclick="moveHabitUp(${index})">↑</button>
+          <button class="move-btn" onclick="moveHabitDown(${index})">↓</button>
+          <button class="edit-btn" onclick="window.editHabit(${index})">수정</button>
+        </div>
+        <div class="habit-actions-bottom">
+          <button class="delete-btn" onclick="deleteHabit(${index})">×</button>
+        </div>
       `
   }
 </div>
