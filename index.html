@@ -2173,7 +2173,11 @@ function setupInstallButton() {
       currentUser = data.user;
       document.getElementById("userEmail").textContent = currentUser.email || "";
       showAppScreen();
+      if (navigator.onLine) {
       await loadHabitsFromSupabase();
+} else {
+  console.log("오프라인이라 데이터 로드 안함");
+}
       setAuthMessage("로그인 성공");
     };
 
@@ -3203,7 +3207,11 @@ if (!navigator.onLine) {
       currentUser = user;
       document.getElementById("userEmail").textContent = currentUser.email || "";
       showAppScreen();
-      await loadHabitsFromSupabase();
+      if (navigator.onLine) {
+  await loadHabitsFromSupabase();
+} else {
+  console.log("오프라인이라 데이터 로드 안함");
+}
     }
 
     initApp();
