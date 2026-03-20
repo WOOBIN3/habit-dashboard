@@ -3181,7 +3181,18 @@ async function initApp() {
   updateNetworkStatus();
   setupInstallButton();
 
-  const user = await getCurrentUser();
+  let user = null;
+
+if (!navigator.onLine) {
+  console.log("오프라인이라 사용자 조회 안함");
+} else {
+  try {
+    user = await getCurrentUser();
+  } catch (e) {
+    console.log("사용자 조회 실패:", e);
+  }
+}
+
       if (!user) {
         currentUser = null;
         resetAppState();
