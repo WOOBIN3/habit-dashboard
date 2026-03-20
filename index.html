@@ -1957,14 +1957,18 @@ function setupInstallButton() {
   });
 }
 
-    async function getCurrentUser() {
-      const { data, error } = await supabaseClient.auth.getUser();
-      if (error) {
-        console.error("현재 사용자 조회 실패:", error.message);
-        return null;
-      }
-      return data.user;
+async function getCurrentUser() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error) {
+    if (error.message !== "Auth session missing!") {
+      console.error("현재 사용자 조회 실패:", error.message);
     }
+    return null;
+  }
+
+  return data.user;
+}
 
     function getUserStorageKey() {
       return currentUser ? `${STORAGE_KEY}_${currentUser.id}` : STORAGE_KEY;
