@@ -38,13 +38,15 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   // 페이지 이동 요청이면: 네트워크 우선, 실패하면 index.html 반환
   if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match("/index.html");
-      })
-    );
-    return;
-  }
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match("/index.html").then((response) => {
+        return response || new Response("오프라인 상태입니다");
+      });
+    })
+  );
+  return;
+}
 
   // 그 외 파일(js, css, 이미지 등)은 캐시 우선, 없으면 네트워크
   event.respondWith(
