@@ -2083,6 +2083,22 @@ async function getCurrentUser() {
     }
 
     async function loadHabitsFromSupabase() {
+      if (!navigator.onLine) {
+  const savedHabits = localStorage.getItem("habits");
+  const savedState = localStorage.getItem(getUserStorageKey());
+
+  if (savedHabits) {
+    appState.habits = JSON.parse(savedHabits);
+  }
+
+  if (savedState) {
+    const parsedState = JSON.parse(savedState);
+    appState.monthData = parsedState.monthData || {};
+  }
+
+  renderAll();
+  return;
+}
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) return;
 
@@ -2104,6 +2120,8 @@ async function getCurrentUser() {
           name: h.name,
           position: h.position ?? 0
         }));
+
+        localStorage.setItem("habits", JSON.stringify(appState.habits));
 
         await hydrateChecksForCurrentMonth();
         saveLocalState();
