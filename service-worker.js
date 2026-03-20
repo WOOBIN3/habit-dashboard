@@ -37,12 +37,8 @@ self.addEventListener("activate", (event) => {
 // 요청이 오면 캐시 먼저 확인하고, 없으면 네트워크 요청
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match("/index.html");
     })
   );
 });
