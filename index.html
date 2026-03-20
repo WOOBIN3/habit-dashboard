@@ -2156,34 +2156,39 @@ async function getCurrentUser() {
     }
 
     window.signIn = async function () {
-      const email = document.getElementById("emailInput").value.trim();
-      const password = document.getElementById("passwordInput").value.trim();
+  const email = document.getElementById("emailInput").value.trim();
+  const password = document.getElementById("passwordInput").value.trim();
 
-      if (!email || !password) {
-        setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
-        return;
-      }
+  if (!email || !password) {
+    setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
+    return;
+  }
 
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+  if (!navigator.onLine) {
+    setAuthMessage("오프라인 상태에서는 로그인할 수 없어. 인터넷 연결 후 다시 시도해줘.", true);
+    return;
+  }
 
-      if (error) {
-        setAuthMessage("로그인 실패: " + error.message, true);
-        return;
-      }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-      currentUser = data.user;
-      document.getElementById("userEmail").textContent = currentUser.email || "";
-      showAppScreen();
-      if (navigator.onLine) {
-      await loadHabitsFromSupabase();
-} else {
-  console.log("오프라인이라 데이터 로드 안함");
-}
-      setAuthMessage("로그인 성공");
-    };
+  if (error) {
+    setAuthMessage("로그인 실패: " + error.message, true);
+    return;
+  }
+
+  currentUser = data.user;
+  document.getElementById("userEmail").textContent = currentUser.email || "";
+  showAppScreen();
+
+  if (navigator.onLine) {
+    await loadHabitsFromSupabase();
+  }
+
+  setAuthMessage("로그인 성공");
+};
 
     window.signUp = async function () {
       const email = document.getElementById("emailInput").value.trim();
@@ -2191,6 +2196,11 @@ async function getCurrentUser() {
 
       if (!email || !password) {
         setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
+        return;
+      }
+
+       if (!navigator.onLine) {
+        setAuthMessage("오프라인 상태에서는 회원가입할 수 없어. 인터넷 연결 후 다시 시도해줘.", true);
         return;
       }
 
