@@ -3227,7 +3227,7 @@ window.addEventListener("appinstalled", () => {
     installBtn.classList.add("hidden");
   }
 
-  console.log("앱 설치 완료");
+  showToast("앱 설치 완료! 🎉", "success");
 });
 
     if ("serviceWorker" in navigator) {
