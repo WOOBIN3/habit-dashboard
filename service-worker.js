@@ -1,4 +1,4 @@
-const CACHE_NAME = "habit-dashboard-v2";
+const CACHE_NAME = "habit-dashboard-v4";
 
 const urlsToCache = [
   "/",
@@ -36,9 +36,20 @@ self.addEventListener("activate", (event) => {
 
 // 요청이 오면 캐시 먼저 확인하고, 없으면 네트워크 요청
 self.addEventListener("fetch", (event) => {
+  // 페이지 이동 요청이면: 네트워크 우선, 실패하면 index.html 반환
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match("/index.html");
+      })
+    );
+    return;
+  }
+
+  // 그 외 파일(js, css, 이미지 등)은 캐시 우선, 없으면 네트워크
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match("/index.html");
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request);
     })
   );
 });
