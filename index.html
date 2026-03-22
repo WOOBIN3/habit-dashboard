@@ -3219,53 +3219,28 @@ async function initApp() {
 
   let user = null;
 
-  if (!navigator.onLine) {
-  const savedHabits = localStorage.getItem("habits");
-  const savedState = localStorage.getItem(getUserStorageKey());
-
-  if (savedHabits) {
-    appState.habits = JSON.parse(savedHabits);
+if (!navigator.onLine) {
+  console.log("오프라인이라 사용자 조회 안함");
+} else {
+  try {
+    user = await getCurrentUser();
+  } catch (e) {
+    console.log("사용자 조회 실패:", e);
   }
+}
 
-  if (savedState) {
-    const parsedState = JSON.parse(savedState);
-    appState.monthData = parsedState.monthData || {};
-  }
-
-  if (savedHabits || savedState) {
-    currentUser = { email: "오프라인 모드" };
-    document.getElementById("userEmail").textContent = "오프라인 모드";
-    showAppScreen();
-    renderAll();
+  if (!user) {
+    currentUser = null;
+    resetAppState();
+    showAuthScreen();
     return;
   }
 
-  showAuthScreen();
-  return;
-}
-
-try {
-  user = await getCurrentUser();
-} catch (e) {
-  console.log("사용자 조회 실패:", e);
-}
-
-      if (!user) {
-        currentUser = null;
-        resetAppState();
-        showAuthScreen();
-        return;
-      }
-
-      currentUser = user;
-      document.getElementById("userEmail").textContent = currentUser.email || "";
-      showAppScreen();
-      if (navigator.onLine) {
+  currentUser = user;
+  document.getElementById("userEmail").textContent = currentUser.email || "";
+  showAppScreen();
   await loadHabitsFromSupabase();
-} else {
-  console.log("오프라인이라 데이터 로드 안함");
 }
-    }
 
     initApp();
 
