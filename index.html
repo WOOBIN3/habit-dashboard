@@ -2076,29 +2076,44 @@ async function getCurrentUser() {
       }
     }
 
-    async function loadHabitsFromSupabase() {
-  // 오프라인이면 로컬 저장 데이터로 먼저 열기
-  if (!navigator.onLine) {
-    const savedState = localStorage.getItem(getUserStorageKey());
+   async function loadHabitsFromSupabase() {
+  const savedState = localStorage.getItem(getUserStorageKey());
 
-    if (savedState) {
+  function openLocalBackup() {
+    if (!savedState) {
+      resetAppState();
+      renderAll();
+      return false;
+    }
+
+    try {
       const parsedState = JSON.parse(savedState);
       appState.habits = parsedState.habits || [];
       appState.monthData = parsedState.monthData || {};
       appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
-    } else {
-      resetAppState();
-    }
 
-    renderAll();
-    return;
+      if (!appState.monthData[monthKey]) {
+        appState.monthData[monthKey] = {};
+      }
+
+      renderAll();
+      return true;
+    } catch (error) {
+      console.error("로컬 데이터 열기 실패:", error);
+      resetAppState();
+      renderAll();
+      return false;
+    }
   }
 
-  // 온라인이면 현재 사용자 기준으로 Supabase에서 불러오기
-  const user = currentUser || await getCurrentUser();
-  if (!user) return;
-
   try {
+    const user = currentUser || await getCurrentUser();
+
+    if (!user) {
+      openLocalBackup();
+      return;
+    }
+
     const { data, error } = await supabaseClient
       .from("habits")
       .select("id, name, position, created_at")
@@ -2108,6 +2123,12 @@ async function getCurrentUser() {
 
     if (error) {
       console.error("Supabase habits 불러오기 실패:", error.message);
+      const opened = openLocalBackup();
+
+      if (opened) {
+        showToast("오프라인 저장 데이터로 열었어.", "info");
+      }
+
       return;
     }
 
@@ -2121,7 +2142,13 @@ async function getCurrentUser() {
     saveLocalState();
     renderAll();
   } catch (error) {
-    console.error("Supabase habits 로드 전체 에러:", error.message || error);
+    console.error("Supabase habits 로드 전체 에러:", error);
+
+    const opened = openLocalBackup();
+
+    if (opened) {
+      showToast("오프라인 저장 데이터로 열었어.", "info");
+    }
   }
 }
 
