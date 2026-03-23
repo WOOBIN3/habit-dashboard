@@ -1872,6 +1872,8 @@ function updateNetworkStatus() {
   const statusEl = document.getElementById("networkStatus");
   if (!statusEl) return;
 
+  statusEl.classList.remove("hidden");
+
   if (navigator.onLine) {
     statusEl.textContent = "온라인";
     statusEl.classList.remove("offline");
