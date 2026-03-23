@@ -1944,25 +1944,15 @@ function setupInstallButton() {
 }
 
 async function getCurrentUser() {
-  if (!navigator.onLine) {
-    return null;
-  }
-
   try {
-    const { data, error } = await supabaseClient.auth.getUser();
+    const { data, error } = await supabaseClient.auth.getSession();
 
     if (error) {
-      if (navigator.onLine && error.message !== "Auth session missing!") {
-        console.error("현재 사용자 조회 실패:", error.message);
-      }
       return null;
     }
 
-    return data.user;
+    return data.session?.user ?? null;
   } catch (error) {
-    if (navigator.onLine) {
-      console.error("현재 사용자 조회 실패:", error.message || error);
-    }
     return null;
   }
 }
@@ -2031,18 +2021,18 @@ async function getCurrentUser() {
     }
 
     async function saveState() {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
+  const user = currentUser || await getCurrentUser();
+  if (!user) return;
 
-      try {
-        saveLocalState();
+  try {
+    saveLocalState();
 
-        const rows = appState.habits.map((habit, index) => ({
-          id: habit.id,
-          user_id: user.id,
-          name: habit.name,
-          position: index
-        }));
+    const rows = appState.habits.map((habit, index) => ({
+      id: habit.id,
+      user_id: user.id,
+      name: habit.name,
+      position: index
+    }));
 
         const existingIds = appState.habits.map(h => h.id);
 
@@ -2087,50 +2077,53 @@ async function getCurrentUser() {
     }
 
     async function loadHabitsFromSupabase() {
-      if (!navigator.onLine) {
+  // 오프라인이면 로컬 저장 데이터로 먼저 열기
+  if (!navigator.onLine) {
     const savedState = localStorage.getItem(getUserStorageKey());
 
-     if (savedState) {
-    const parsedState = JSON.parse(savedState);
-    appState.habits = parsedState.habits || [];
-    appState.monthData = parsedState.monthData || {};
-    appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
-  } else {
-    resetAppState();
+    if (savedState) {
+      const parsedState = JSON.parse(savedState);
+      appState.habits = parsedState.habits || [];
+      appState.monthData = parsedState.monthData || {};
+      appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
+    } else {
+      resetAppState();
+    }
+
+    renderAll();
+    return;
   }
 
-  renderAll();
-  return;
-}
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
+  // 온라인이면 현재 사용자 기준으로 Supabase에서 불러오기
+  const user = currentUser || await getCurrentUser();
+  if (!user) return;
 
-      try {
-        const { data, error } = await supabaseClient
-          .from("habits")
-          .select("id, name, position, created_at")
-          .eq("user_id", user.id)
-          .order("position", { ascending: true })
-          .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabaseClient
+      .from("habits")
+      .select("id, name, position, created_at")
+      .eq("user_id", user.id)
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true });
 
-        if (error) {
-          console.error("Supabase habits 불러오기 실패:", error.message);
-          return;
-        }
-
-        appState.habits = (data || []).map((h) => ({
-          id: h.id,
-          name: h.name,
-          position: h.position ?? 0
-        }));
-
-        await hydrateChecksForCurrentMonth();
-        saveLocalState();
-        renderAll();
-      } catch (error) {
-        console.error("Supabase habits 로드 전체 에러:", error.message);
-      }
+    if (error) {
+      console.error("Supabase habits 불러오기 실패:", error.message);
+      return;
     }
+
+    appState.habits = (data || []).map((h) => ({
+      id: h.id,
+      name: h.name,
+      position: h.position ?? 0
+    }));
+
+    await hydrateChecksForCurrentMonth();
+    saveLocalState();
+    renderAll();
+  } catch (error) {
+    console.error("Supabase habits 로드 전체 에러:", error.message || error);
+  }
+}
 
     function getHabits() {
       return appState.habits;
