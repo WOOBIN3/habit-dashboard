@@ -1868,17 +1868,17 @@ h1 {
     }
     
 function updateNetworkStatus() {
-  const el = document.getElementById("networkStatus");
-  if (!el) return;
+  const statusEl = document.getElementById("networkStatus");
+  if (!statusEl) return;
 
   if (navigator.onLine) {
-    el.textContent = "온라인";
-    el.classList.remove("offline", "hidden");
-    el.classList.add("online");
+    statusEl.textContent = "온라인";
+    statusEl.classList.remove("offline");
+    statusEl.classList.add("online");
   } else {
-    el.textContent = "오프라인";
-    el.classList.remove("online", "hidden");
-    el.classList.add("offline");
+    statusEl.textContent = "오프라인";
+    statusEl.classList.remove("online");
+    statusEl.classList.add("offline");
   }
 }
 
@@ -2083,7 +2083,7 @@ async function getCurrentUser() {
 
   function openLocalBackup() {
     if (!savedState) {
-      resetAppState();
+      resetAppState()
       renderAll();
       return false;
     }
@@ -2141,17 +2141,17 @@ async function getCurrentUser() {
       .order("position", { ascending: true })
       .order("created_at", { ascending: true });
 
-    if (error) {
-      const opened = openLocalBackup();
+   if (error) {
+  const opened = openLocalBackup();
 
-      if (opened) {
-        showToast("서버 대신 저장된 데이터로 열었어.", "info");
-      } else {
-        console.error("Supabase habits 불러오기 실패:", error.message);
-      }
+  if (opened) {
+    showToast("오프라인 저장 데이터로 열었어.", "info");
+  } else {
+    console.error("Supabase habits 불러오기 실패:", error.message || error);
+  }
 
-      return;
-    }
+  return;
+}
 
     appState.habits = (data || []).map((h) => ({
       id: h.id,
@@ -2163,16 +2163,14 @@ async function getCurrentUser() {
     saveLocalState();
     renderAll();
   } catch (error) {
-    const opened = openLocalBackup();
+  const opened = openLocalBackup();
 
-    if (opened) {
-      showToast("오프라인 저장 데이터로 열었어.", "info");
-    } else {
-      console.error("Supabase habits 로드 전체 에러:", error);
-    }
+  if (opened) {
+    showToast("오프라인 저장 데이터로 열었어.", "info");
+  } else {
+    console.error("Supabase habits 로드 전체 에러:", error);
   }
 }
-
     function getHabits() {
       return appState.habits;
     }
@@ -3527,17 +3525,16 @@ window.addEventListener("appinstalled", () => {
 });
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js")
-      .then((registration) => {
-        console.log("Service Worker 등록 성공:", registration.scope);
-      })
-      .catch((error) => {
-        console.error("Service Worker 등록 실패:", error);
-      });
-  });
+  navigator.serviceWorker.register("/service-worker.js")
+    .then((registration) => {
+      console.log("Service Worker 등록 성공:", registration.scope);
+    })
+    .catch((error) => {
+      console.error("Service Worker 등록 실패:", error);
+    });
 }
 
+}
   </script>
 
     <div id="toast" class="toast hidden"></div>
