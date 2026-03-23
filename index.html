@@ -1876,26 +1876,6 @@ function updateNetworkStatus() {
   }
 }
 
-window.showToast = function (message, type = "info") {
-  const toast = document.getElementById("toast");
-  if (!toast) return;
-
-  clearTimeout(toastTimer);
-  clearTimeout(toastHideTimer);
-
-  toast.textContent = message;
-  toast.classList.remove("hidden", "success", "error", "info");
-  toast.classList.add(type);
-
-  toastHideTimer = setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 2200);
-
-  toastTimer = setTimeout(() => {
-    toast.classList.remove("success", "error", "info");
-  }, 2500);
-};
-
 function showToast(message, type = "info") {
   const toast = document.getElementById("toast");
   if (!toast) return;
@@ -2084,16 +2064,14 @@ async function getCurrentUser() {
 
     async function loadHabitsFromSupabase() {
       if (!navigator.onLine) {
-  const savedHabits = localStorage.getItem("habits");
-  const savedState = localStorage.getItem(getUserStorageKey());
+    const savedState = localStorage.getItem(getUserStorageKey());
 
-  if (savedHabits) {
-    appState.habits = JSON.parse(savedHabits);
-  }
-
-  if (savedState) {
+     if (savedState) {
     const parsedState = JSON.parse(savedState);
+    appState.habits = parsedState.habits || [];
     appState.monthData = parsedState.monthData || {};
+  } else {
+    resetAppState();
   }
 
   renderAll();
@@ -2120,8 +2098,6 @@ async function getCurrentUser() {
           name: h.name,
           position: h.position ?? 0
         }));
-
-        localStorage.setItem("habits", JSON.stringify(appState.habits));
 
         await hydrateChecksForCurrentMonth();
         saveLocalState();
@@ -2251,6 +2227,11 @@ async function getCurrentUser() {
   const input = document.getElementById("habitInput");
   const value = input.value.trim();
 
+if (!navigator.onLine) {
+  showToast("오프라인 상태에서는 새 습관을 추가할 수 없어.", "error");
+  return;
+}
+
 if (!value) {
   showToast("습관 이름을 입력해줘.", "error");
   return;
@@ -2297,32 +2278,49 @@ showToast("습관이 추가됐어.", "success");
 }
 
 async function deleteHabit(index) {
+  console.log("deleteHabit 최신 코드 실행");
+  
+  if (!navigator.onLine) {
+    showToast("오프라인 상태에서는 습관을 삭제할 수 없어.", "error");
+    return;
+  }
+
   const habits = getHabits();
   const habit = habits[index];
 
   if (!confirm(`${habit.name} 습관을 삭제할까?`)) return;
 
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
-  const { error } = await supabaseClient
-    .from("habits")
-    .delete()
-    .eq("id", habit.id)
-    .eq("user_id", user.id);
+    if (!user) {
+      showToast("로그인 정보를 다시 확인해줘.", "error");
+      return;
+    }
 
-  if (error) {
-    console.error("삭제 실패:", error.message);
-    return;
+    const { error } = await supabaseClient
+      .from("habits")
+      .delete()
+      .eq("id", habit.id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("삭제 실패:", error.message);
+      showToast("삭제에 실패했어. 인터넷 연결 상태를 확인해줘.", "error");
+      return;
+    }
+
+    habits.splice(index, 1);
+    delete getMonthChecks()[habit.id];
+    habits.forEach((habitItem, i) => habitItem.position = i);
+
+    await saveState();
+    renderAll();
+    showToast("습관이 삭제됐어.", "success");
+  } catch (error) {
+    console.error("deleteHabit 전체 에러:", error);
+    showToast("삭제 중 오류가 발생했어. 인터넷 연결 상태를 확인해줘.", "error");
   }
-
-  habits.splice(index, 1);
-  delete getMonthChecks()[habit.id];
-  habits.forEach((habitItem, i) => habitItem.position = i);
-
-await saveState();
-renderAll();
-showToast("습관이 삭제됐어.", "success");
 }
 
 window.editHabit = function (index) {
@@ -2485,6 +2483,11 @@ document.addEventListener("keydown", function (event) {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        if (!navigator.onLine) {
+        showToast("오프라인 상태에서는 백업 복원을 완료할 수 없어.", "error");
+        return;
+}
+
         try {
           const text = await file.text();
           const parsed = JSON.parse(text);
@@ -2506,7 +2509,7 @@ document.addEventListener("keydown", function (event) {
 
           saveLocalState();
           await saveState();
-          await hydrateChecksForCurrentMonth();
+          await syncAllChecksToSupabase();
           renderAll();
 
           showToast("백업 복원이 완료됐어.", "success");
@@ -2560,6 +2563,58 @@ document.addEventListener("keydown", function (event) {
 
   if (error) {
     console.error("check 저장 실패:", error.message);
+  }
+}
+
+async function syncAllChecksToSupabase() {
+  if (!currentUser) return;
+
+  const monthData = appState.monthData || {};
+  const rows = [];
+
+  Object.keys(monthData).forEach((monthKeyItem) => {
+    const checksByHabit = monthData[monthKeyItem] || {};
+    const [year, month] = monthKeyItem.split("-");
+
+    Object.keys(checksByHabit).forEach((habitId) => {
+      const checks = checksByHabit[habitId] || [];
+
+      checks.forEach((checked, index) => {
+        if (!checked) return;
+
+        const day = String(index + 1).padStart(2, "0");
+
+        rows.push({
+          user_id: currentUser.id,
+          habit_id: habitId,
+          check_date: `${year}-${month}-${day}`,
+          checked: true
+        });
+      });
+    });
+  });
+
+  const { error: deleteError } = await supabaseClient
+    .from("habit_checks")
+    .delete()
+    .eq("user_id", currentUser.id);
+
+  if (deleteError) {
+    console.error("기존 체크 삭제 실패:", deleteError.message);
+    throw deleteError;
+  }
+
+  if (rows.length === 0) return;
+
+  const { error: upsertError } = await supabaseClient
+    .from("habit_checks")
+    .upsert(rows, {
+      onConflict: "habit_id,check_date"
+    });
+
+  if (upsertError) {
+    console.error("체크 복원 실패:", upsertError.message);
+    throw upsertError;
   }
 }
 
