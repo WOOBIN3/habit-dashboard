@@ -1845,9 +1845,10 @@ h1 {
     let habitProgressChart = null;
 
     const appState = {
-      habits: [],
-      monthData: {}
-    };
+    habits: [],
+    monthData: {},
+    pendingCheckQueue: []
+    }; 
 
     if (!appState.monthData[monthKey]) {
       appState.monthData[monthKey] = {};
@@ -1955,16 +1956,23 @@ async function getCurrentUser() {
     }
 
     function saveLocalState() {
-      localStorage.setItem(getUserStorageKey(), JSON.stringify(appState));
-    }
+  const key = getUserStorageKey();
+  localStorage.setItem(key, JSON.stringify(appState));
+
+  if (currentUser && currentUser.id) {
+    localStorage.setItem("habitDashboardLastUserKey", key);
+  }
+}
 
     function resetAppState() {
-      appState.habits = [];
-      appState.monthData = {};
-      if (!appState.monthData[monthKey]) {
-        appState.monthData[monthKey] = {};
-      }
-    }
+    appState.habits = [];
+    appState.monthData = {};
+    appState.pendingCheckQueue = [];
+
+    if (!appState.monthData[monthKey]) {
+    appState.monthData[monthKey] = {};
+   }
+  }
 
     async function hydrateChecksForCurrentMonth() {
       if (!currentUser) return;
@@ -2070,6 +2078,7 @@ async function getCurrentUser() {
     const parsedState = JSON.parse(savedState);
     appState.habits = parsedState.habits || [];
     appState.monthData = parsedState.monthData || {};
+    appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
   } else {
     resetAppState();
   }
@@ -2149,7 +2158,43 @@ async function getCurrentUser() {
       });
     }
 
-    window.signIn = async function () {
+function addPendingCheck(habitId, dayIndex, checked) {
+  const existingIndex = appState.pendingCheckQueue.findIndex((item) =>
+    item.habitId === habitId && item.dayIndex === dayIndex
+  );
+
+  const newItem = { habitId, dayIndex, checked };
+
+  if (existingIndex >= 0) {
+    appState.pendingCheckQueue[existingIndex] = newItem;
+  } else {
+    appState.pendingCheckQueue.push(newItem);
+  }
+
+  saveLocalState();
+}
+
+async function flushPendingChecks() {
+  if (!navigator.onLine) return;
+  if (!currentUser) return;
+  if (!appState.pendingCheckQueue.length) return;
+
+  const queueCopy = [...appState.pendingCheckQueue];
+
+  try {
+    for (const item of queueCopy) {
+      await saveCheckToSupabase(item.habitId, item.dayIndex, item.checked);
+    }
+
+    appState.pendingCheckQueue = [];
+    saveLocalState();
+    showToast("오프라인 체크가 동기화됐어.", "success");
+  } catch (error) {
+    console.error("flushPendingChecks 실패:", error);
+  }
+}
+
+window.signIn = async function () {
   const email = document.getElementById("emailInput").value.trim();
   const password = document.getElementById("passwordInput").value.trim();
 
@@ -2163,53 +2208,61 @@ async function getCurrentUser() {
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
 
-  if (error) {
-    setAuthMessage("로그인 실패: " + error.message, true);
+    if (error) {
+      setAuthMessage("로그인 실패: " + error.message, true);
+      return;
+    }
+
+    currentUser = data.user;
+    document.getElementById("userEmail").textContent = currentUser.email || "";
+    showAppScreen();
+
+    if (navigator.onLine) {
+      await loadHabitsFromSupabase();
+    }
+
+    setAuthMessage("로그인 성공");
+  } catch (err) {
+    setAuthMessage("인터넷 연결이 필요해.", true);
+  }
+};
+
+window.signUp = async function () {
+  const email = document.getElementById("emailInput").value.trim();
+  const password = document.getElementById("passwordInput").value.trim();
+
+  if (!email || !password) {
+    setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
     return;
   }
 
-  currentUser = data.user;
-  document.getElementById("userEmail").textContent = currentUser.email || "";
-  showAppScreen();
-
-  if (navigator.onLine) {
-    await loadHabitsFromSupabase();
+  if (!navigator.onLine) {
+    setAuthMessage("오프라인 상태에서는 회원가입할 수 없어. 인터넷 연결 후 다시 시도해줘.", true);
+    return;
   }
 
-  setAuthMessage("로그인 성공");
+  try {
+    const { error } = await supabaseClient.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) {
+      setAuthMessage("회원가입 실패: " + error.message, true);
+      return;
+    }
+
+    setAuthMessage("회원가입이 완료됐어. 이제 로그인해줘.");
+  } catch (err) {
+    setAuthMessage("인터넷 연결이 필요해.", true);
+  }
 };
-
-    window.signUp = async function () {
-      const email = document.getElementById("emailInput").value.trim();
-      const password = document.getElementById("passwordInput").value.trim();
-
-      if (!email || !password) {
-        setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
-        return;
-      }
-
-       if (!navigator.onLine) {
-        setAuthMessage("오프라인 상태에서는 회원가입할 수 없어. 인터넷 연결 후 다시 시도해줘.", true);
-        return;
-      }
-
-      const { error } = await supabaseClient.auth.signUp({
-        email,
-        password
-      });
-
-      if (error) {
-        setAuthMessage("회원가입 실패: " + error.message, true);
-        return;
-      }
-
-      setAuthMessage("회원가입이 완료됐어. 이제 로그인해줘.");
-    };
 
     window.signOut = async function () {
       await supabaseClient.auth.signOut();
@@ -2557,29 +2610,40 @@ document.addEventListener("keydown", function (event) {
       triggerCheckPulseFromCell(cell);
     }
 
-   async function saveCheckToSupabase(habitId, dayIndex, checked) {
+async function saveCheckToSupabase(habitId, dayIndex, checked) {
   if (!currentUser) return;
+
+  if (!navigator.onLine) {
+    addPendingCheck(habitId, dayIndex, checked);
+    return;
+  }
 
   const day = String(dayIndex + 1).padStart(2, "0");
   const month = String(currentMonth).padStart(2, "0");
   const date = `${currentYear}-${month}-${day}`;
 
-  const { error } = await supabaseClient
-    .from("habit_checks")
-    .upsert(
-      {
-        user_id: currentUser.id,
-        habit_id: habitId,
-        check_date: date,
-        checked: checked
-      },
-      {
-        onConflict: "habit_id,check_date"
-      }
-    );
+  try {
+    const { error } = await supabaseClient
+      .from("habit_checks")
+      .upsert(
+        {
+          user_id: currentUser.id,
+          habit_id: habitId,
+          check_date: date,
+          checked: checked
+        },
+        {
+          onConflict: "habit_id,check_date"
+        }
+      );
 
-  if (error) {
-    console.error("check 저장 실패:", error.message);
+    if (error) {
+      console.error("check 저장 실패:", error.message);
+      addPendingCheck(habitId, dayIndex, checked);
+    }
+  } catch (error) {
+    console.error("saveCheckToSupabase 전체 에러:", error);
+    addPendingCheck(habitId, dayIndex, checked);
   }
 }
 
@@ -3289,17 +3353,85 @@ async function initApp() {
   updateNetworkStatus();
   setupInstallButton();
 
+  if (!navigator.onLine) {
+    const lastUserKey = localStorage.getItem("habitDashboardLastUserKey");
+    const savedState = lastUserKey ? localStorage.getItem(lastUserKey) : null;
+
+    if (savedState) {
+      const parsedState = JSON.parse(savedState);
+
+      appState.habits = parsedState.habits || [];
+      appState.monthData = parsedState.monthData || {};
+      appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
+
+      async function initApp() {
+  setHeaderDate();
+  updateNetworkStatus();
+  setupInstallButton();
+
+  if (!navigator.onLine) {
+    const lastUserKey = localStorage.getItem("habitDashboardLastUserKey");
+    const savedState = lastUserKey ? localStorage.getItem(lastUserKey) : null;
+
+    if (savedState) {
+      const parsedState = JSON.parse(savedState);
+
+      appState.habits = parsedState.habits || [];
+      appState.monthData = parsedState.monthData || {};
+      appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
+
+      currentUser = null;
+      document.getElementById("userEmail").textContent = "오프라인 모드";
+
+      showAppScreen();
+      renderAll();
+      return;
+    }
+
+    showAuthScreen();
+    setAuthMessage("오프라인 상태라 저장된 데이터가 있을 때만 앱을 열 수 있어.", true);
+    return;
+  }
+
   let user = null;
 
-if (!navigator.onLine) {
-  console.log("오프라인이라 사용자 조회 안함");
-} else {
   try {
     user = await getCurrentUser();
   } catch (e) {
     console.log("사용자 조회 실패:", e);
   }
+
+  if (!user) {
+    currentUser = null;
+    resetAppState();
+    showAuthScreen();
+    return;
+  }
+
+  currentUser = user;
+  document.getElementById("userEmail").textContent = currentUser.email || "";
+  showAppScreen();
+  await loadHabitsFromSupabase();
 }
+      document.getElementById("userEmail").textContent = "오프라인 모드";
+
+      showAppScreen();
+      renderAll();
+      return;
+    }
+
+    showAuthScreen();
+    setAuthMessage("오프라인 상태라 저장된 데이터가 있을 때만 앱을 열 수 있어.", true);
+    return;
+  }
+
+  let user = null;
+
+  try {
+    user = await getCurrentUser();
+  } catch (e) {
+    console.log("사용자 조회 실패:", e);
+  }
 
   if (!user) {
     currentUser = null;
@@ -3325,7 +3457,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-window.addEventListener("online", updateNetworkStatus);
+window.addEventListener("online", async () => {
+  updateNetworkStatus();
+  await flushPendingChecks();
+});
+
 window.addEventListener("offline", updateNetworkStatus);
 
 window.addEventListener("beforeinstallprompt", (event) => {
