@@ -2306,12 +2306,14 @@ if (habits.some(h => h.name === value)) {
   return;
 }
 
-  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+const user = currentUser || await getCurrentUser();
+const userError = !user ? new Error("no user") : null;
 
   if (userError || !user) {
-    console.error("getUser error:", userError);
-showToast("로그인 정보를 찾을 수 없어. 다시 로그인해줘.", "error");    return;
-  }
+  console.error("getUser error:", userError);
+  showToast("로그인 정보를 찾을 수 없어. 다시 로그인해줘.", "error");
+  return;
+}
 
   const newHabit = {
     id: crypto.randomUUID(),
