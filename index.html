@@ -2000,8 +2000,10 @@ async function getCurrentUser() {
         .lte("check_date", endDate);
 
       if (error) {
-        console.error("check 불러오기 실패:", error.message);
-        return;
+      if (error.message !== "Failed to fetch") {
+      console.error("check 불러오기 실패:", error.message);
+     }
+      return;
       }
 
       const monthChecks = {};
