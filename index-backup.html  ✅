@@ -25,17 +25,12 @@
   <meta name="twitter:title" content="습관 대시보드 | 매일 습관 기록과 목표 관리">
   <meta name="twitter:description" content="매일 습관을 기록하고 목표를 관리할 수 있는 습관 대시보드입니다.">
   <meta name="twitter:image" content="https://habit-dashboard-phi.vercel.app/icon-512-v3.png">
-
   <meta name="google-site-verification" content="c5WQPkZpUdEpdRVCuPSkMV3IOIIaBlzUD5Evgs4IJnw" />
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <meta name="theme-color" content="#050505">
   <link rel="icon" href="icon-192-v3.png">
-  <link rel="apple-touch-icon" href="icon-192-v3.png">
-  <link rel="icon" href="icon-512-v3.png">
-
 
   <style>
     * { box-sizing: border-box; }
@@ -1944,25 +1939,16 @@ function setupInstallButton() {
 }
 
 async function getCurrentUser() {
-  if (!navigator.onLine) {
-    return null;
-  }
+  const { data, error } = await supabaseClient.auth.getUser();
 
-  try {
-    const { data, error } = await supabaseClient.auth.getUser();
-
-    if (error) {
-      if (error.message !== "Auth session missing!") {
-        console.error("현재 사용자 조회 실패:", error.message);
-      }
-      return null;
+  if (error) {
+    if (error.message !== "Auth session missing!") {
+      console.error("현재 사용자 조회 실패:", error.message);
     }
-
-    return data.user;
-  } catch (error) {
-    console.error("현재 사용자 조회 실패:", error.message || error);
     return null;
   }
+
+  return data.user;
 }
 
     function getUserStorageKey() {
