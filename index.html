@@ -2090,6 +2090,7 @@ async function getCurrentUser() {
 
     try {
       const parsedState = JSON.parse(savedState);
+
       appState.habits = parsedState.habits || [];
       appState.monthData = parsedState.monthData || {};
       appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
@@ -2108,11 +2109,28 @@ async function getCurrentUser() {
     }
   }
 
+  if (!navigator.onLine) {
+    const opened = openLocalBackup();
+
+    if (opened) {
+      showToast("오프라인 저장 데이터로 열었어.", "info");
+    } else {
+      showToast("오프라인이라 저장된 데이터만 볼 수 있어.", "error");
+    }
+
+    return;
+  }
+
   try {
     const user = currentUser || await getCurrentUser();
 
     if (!user) {
-      openLocalBackup();
+      const opened = openLocalBackup();
+
+      if (opened) {
+        showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
+      }
+
       return;
     }
 
@@ -2124,11 +2142,12 @@ async function getCurrentUser() {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("Supabase habits 불러오기 실패:", error.message);
       const opened = openLocalBackup();
 
       if (opened) {
-        showToast("오프라인 저장 데이터로 열었어.", "info");
+        showToast("서버 대신 저장된 데이터로 열었어.", "info");
+      } else {
+        console.error("Supabase habits 불러오기 실패:", error.message);
       }
 
       return;
@@ -2144,12 +2163,12 @@ async function getCurrentUser() {
     saveLocalState();
     renderAll();
   } catch (error) {
-    console.error("Supabase habits 로드 전체 에러:", error);
-
     const opened = openLocalBackup();
 
     if (opened) {
       showToast("오프라인 저장 데이터로 열었어.", "info");
+    } else {
+      console.error("Supabase habits 로드 전체 에러:", error);
     }
   }
 }
