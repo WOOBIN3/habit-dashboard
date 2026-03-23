@@ -1824,6 +1824,10 @@ h1 {
   </div>
 
   <script>
+    window.addEventListener("error", function (e) {
+  console.log("전역 에러 잡힘:", e.message, "줄:", e.lineno);
+});
+
     const SUPABASE_URL = "https://enzkrtjtrddehzgsiujt.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_7_M136eKhaNh0ElgG3q2Iw_t82JEyMl";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -2250,6 +2254,8 @@ async function flushPendingChecks() {
     console.error("flushPendingChecks 실패:", error);
   }
 }
+
+console.log("여기까지 실행됨: signIn 등록 직전");
 
 window.signIn = async function (event) {
   if (event) event.preventDefault();
