@@ -2162,18 +2162,20 @@ async function getCurrentUser() {
     await hydrateChecksForCurrentMonth();
     saveLocalState();
     renderAll();
-  } catch (error) {
-  const opened = openLocalBackup();
+    } catch (error) {
+    const opened = openLocalBackup();
 
-  if (opened) {
-    showToast("오프라인 저장 데이터로 열었어.", "info");
-  } else {
-    console.error("Supabase habits 로드 전체 에러:", error);
+    if (opened) {
+      showToast("오프라인 저장 데이터로 열었어.", "info");
+    } else {
+      console.error("Supabase habits 로드 전체 에러:", error);
+    }
   }
 }
-    function getHabits() {
-      return appState.habits;
-    }
+
+function getHabits() {
+  return appState.habits;
+}
 
     function getMonthChecks() {
       if (!appState.monthData[monthKey]) {
@@ -2249,9 +2251,11 @@ async function flushPendingChecks() {
   }
 }
 
-window.signIn = async function () {
+window.signIn = async function (event) {
+  if (event) event.preventDefault();
+
   const email = document.getElementById("emailInput").value.trim();
-  const password = document.getElementById("passwordInput").value.trim();
+  const password = document.getElementById("passwordInput").value;
 
   if (!email || !password) {
     setAuthMessage("이메일과 비밀번호를 입력해줘.", true);
@@ -2259,7 +2263,7 @@ window.signIn = async function () {
   }
 
   if (!navigator.onLine) {
-    setAuthMessage("오프라인 상태에서는 로그인할 수 없어. 인터넷 연결 후 다시 시도해줘.", true);
+    setAuthMessage("오프라인 상태에서는 로그인할 수 없어.", true);
     return;
   }
 
@@ -2270,21 +2274,17 @@ window.signIn = async function () {
     });
 
     if (error) {
-      setAuthMessage("로그인 실패: " + error.message, true);
+      setAuthMessage(error.message, true);
       return;
     }
 
     currentUser = data.user;
-    document.getElementById("userEmail").textContent = currentUser.email || "";
+    await loadHabitsFromSupabase();
     showAppScreen();
 
-    if (navigator.onLine) {
-      await loadHabitsFromSupabase();
-    }
-
-    setAuthMessage("로그인 성공");
-  } catch (err) {
-    setAuthMessage("인터넷 연결이 필요해.", true);
+  } catch (error) {
+    console.error("로그인 오류:", error);
+    setAuthMessage("로그인 중 오류 발생", true);
   }
 };
 
@@ -3534,7 +3534,6 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-}
   </script>
 
     <div id="toast" class="toast hidden"></div>
