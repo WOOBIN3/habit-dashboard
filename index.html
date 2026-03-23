@@ -2279,7 +2279,7 @@ showToast("습관이 추가됐어.", "success");
 
 async function deleteHabit(index) {
   console.log("deleteHabit 최신 코드 실행");
-  
+
   if (!navigator.onLine) {
     showToast("오프라인 상태에서는 습관을 삭제할 수 없어.", "error");
     return;
@@ -2288,12 +2288,15 @@ async function deleteHabit(index) {
   const habits = getHabits();
   const habit = habits[index];
 
+  if (!habit) {
+    showToast("삭제할 습관을 찾을 수 없어.", "error");
+    return;
+  }
+
   if (!confirm(`${habit.name} 습관을 삭제할까?`)) return;
 
   try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    if (!user) {
+    if (!currentUser) {
       showToast("로그인 정보를 다시 확인해줘.", "error");
       return;
     }
@@ -2302,7 +2305,7 @@ async function deleteHabit(index) {
       .from("habits")
       .delete()
       .eq("id", habit.id)
-      .eq("user_id", user.id);
+      .eq("user_id", currentUser.id);
 
     if (error) {
       console.error("삭제 실패:", error.message);
@@ -2351,9 +2354,19 @@ window.cancelHabitEdit = function () {
 };
 
 window.saveHabitEdit = async function (index) {
+  if (!navigator.onLine) {
+    showToast("오프라인 상태에서는 습관을 수정할 수 없어.", "error");
+    return;
+  }
+
   const habits = getHabits();
   const habit = habits[index];
   const trimmedName = editingHabitValue.trim();
+
+  if (!habit) {
+    showToast("수정할 습관을 찾을 수 없어.", "error");
+    return;
+  }
 
   if (!trimmedName) {
     showToast("습관 이름을 입력해줘.", "error");
@@ -2365,31 +2378,35 @@ window.saveHabitEdit = async function (index) {
     return;
   }
 
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) {
-    showToast("로그인 정보를 다시 확인해줘.", "error");
-    return;
+  try {
+    if (!currentUser) {
+      showToast("로그인 정보를 다시 확인해줘.", "error");
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("habits")
+      .update({ name: trimmedName })
+      .eq("id", habit.id)
+      .eq("user_id", currentUser.id);
+
+    if (error) {
+      console.error("수정 실패:", error.message);
+      showToast("수정에 실패했어.", "error");
+      return;
+    }
+
+    habit.name = trimmedName;
+    editingHabitId = null;
+    editingHabitValue = "";
+
+    await saveState();
+    renderAll();
+    showToast("수정 완료!", "success");
+  } catch (error) {
+    console.error("saveHabitEdit 전체 에러:", error);
+    showToast("수정 중 오류가 발생했어.", "error");
   }
-
-  const { error } = await supabaseClient
-    .from("habits")
-    .update({ name: trimmedName })
-    .eq("id", habit.id)
-    .eq("user_id", user.id);
-
-if (error) {
-  console.error("수정 실패:", error.message);
-  showToast("수정에 실패했어.", "error");
-  return;
-}
-
-habit.name = trimmedName;
-editingHabitId = null;
-editingHabitValue = "";
-
-await saveState();
-renderAll();
-showToast("수정 완료!", "success");
 };
 
 document.addEventListener("keydown", function (event) {
@@ -3333,8 +3350,8 @@ window.addEventListener("appinstalled", () => {
 });
 
     if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
+  window.addEventListener("load", () => {navigator.serviceWorker.register("/service-worker.js")
+    
       .then((registration) => {
         console.log("Service Worker 등록 성공:", registration.scope);
       })
