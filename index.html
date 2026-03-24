@@ -1853,8 +1853,9 @@ h1 {
     const appState = {
     habits: [],
     monthData: {},
-    pendingCheckQueue: []
-    }; 
+    pendingCheckQueue: [],
+    isSyncing: false
+  }; 
 
     if (!appState.monthData[monthKey]) {
       appState.monthData[monthKey] = {};
@@ -2239,33 +2240,41 @@ async function flushPendingChecks() {
   if (!navigator.onLine) return;
   if (!currentUser) return;
   if (!appState.pendingCheckQueue.length) return;
+  if (appState.isSyncing) return;
 
-  const queueCopy = [...appState.pendingCheckQueue];
-  const failedQueue = [];
+  appState.isSyncing = true;
 
-  showToast("동기화 중...", "info");
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const queueCopy = [...appState.pendingCheckQueue];
+    const failedQueue = [];
 
-  for (const item of queueCopy) {
-    try {
-      await saveCheckToSupabase(item.habitId, item.dayIndex, item.checked);
-    } catch (error) {
-      failedQueue.push(item);
-      console.error("개별 체크 동기화 실패:", item, error);
+    showToast("동기화 중...", "info");
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    for (const item of queueCopy) {
+      try {
+        await saveCheckToSupabase(item.habitId, item.dayIndex, item.checked);
+      } catch (error) {
+        failedQueue.push(item);
+        console.error("개별 체크 동기화 실패:", item, error);
+      }
     }
+
+    appState.pendingCheckQueue = failedQueue;
+    saveLocalState();
+
+    if (failedQueue.length === 0) {
+      showToast("오프라인 체크가 동기화됐어.", "success");
+    } else {
+      showToast(`일부 체크(${failedQueue.length}개) 동기화 실패`, "error");
+
+      setTimeout(() => {
+        flushPendingChecks();
+      }, 3000);
+    }
+  } finally {
+    appState.isSyncing = false;
   }
-
-  appState.pendingCheckQueue = failedQueue;
-  saveLocalState();
-
-if (failedQueue.length === 0) {
-  showToast("오프라인 체크가 동기화됐어.", "success");
-} else {
-showToast(`일부 체크(${failedQueue.length}개) 동기화 실패`, "error");
-  setTimeout(() => {
-    flushPendingChecks();
-  }, 3000);
-}
 }
 
 window.signIn = async function (event) {
