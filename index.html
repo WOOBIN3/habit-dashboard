@@ -2490,9 +2490,12 @@ window.signUp = async function () {
       user_id: user.id
     };
 
-    const { error } = await supabaseClient
-      .from("habits")
-      .insert([newHabit]);
+    const { data, error } = await supabaseClient
+  .from("habits")
+  .insert([newHabit]);
+
+console.log("🔥 insert 결과:", data);
+console.log("🔥 insert 에러:", error);
 
     if (error) {
       console.error("habits 저장 실패:", error);
