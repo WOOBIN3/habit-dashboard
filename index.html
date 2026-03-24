@@ -2285,8 +2285,8 @@ async function flushPendingChecks() {
   appState.isSyncing = true;
 
   try {
-    const queueCopy = [...appState.pendingCheckQueue];
-    const failedQueue = [];
+  const queueCopy = [...appState.pendingCheckQueue];
+  const failedQueue = [];
 
     showToast("동기화 중...", "info");
     await new Promise(resolve => setTimeout(resolve, 500));
