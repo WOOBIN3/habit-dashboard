@@ -555,6 +555,11 @@ h1 {
       z-index: 1;
     }
 
+.add-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
     .add-btn:active,
     .bulk-btn:active,
     .move-btn:active,
@@ -1742,8 +1747,7 @@ h1 {
 
         <div class="input-row">
           <input id="habitInput" class="habit-input" type="text" placeholder="예: 운동, 독서, 일찍 자기" />
-          <button class="add-btn" onclick="addHabit()">습관 추가</button>
-        </div>
+          <button id="addHabitBtn" class="add-btn" onclick="addHabit()">습관 추가</button>        </div>
 
         <div class="bulk-actions" style="display: grid; grid-template-columns: 1fr 1fr;">
           <button class="bulk-btn" onclick="setTodayAll(true)">오늘 전체 완료</button>
@@ -2400,59 +2404,78 @@ window.signUp = async function () {
     };
 
     async function addHabit() {
+  console.log("addHabit 실행됨");
+
   const input = document.getElementById("habitInput");
+  const addButton = document.getElementById("addHabitBtn");
   const value = input.value.trim();
 
-if (!navigator.onLine) {
-  showToast("오프라인 상태에서는 새 습관을 추가할 수 없어.", "error");
-  return;
-}
+  console.log("잡은 버튼:", addButton);
 
-if (!value) {
-  showToast("습관 이름을 입력해줘.", "error");
-  return;
-}
+  if (!navigator.onLine) {
+    showToast("오프라인 상태에서는 새 습관을 추가할 수 없어.", "error");
+    return;
+  }
+
+  if (!value) {
+    showToast("습관 이름을 입력해줘.", "error");
+    return;
+  }
 
   const habits = getHabits();
 
-if (habits.some(h => h.name === value)) {
-  showToast("이미 있는 습관이야.", "error");
-  return;
-}
+  if (habits.some(h => h.name === value)) {
+    showToast("이미 있는 습관이야.", "error");
+    return;
+  }
 
-const user = currentUser || await getCurrentUser();
-const userError = !user ? new Error("no user") : null;
+  addButton.disabled = true;
+  addButton.textContent = "추가 중...";
+  addButton.style.background = "#666";
+  console.log("버튼 글자 변경 후:", addButton.textContent);
 
-  if (userError || !user) {
-  console.error("getUser error:", userError);
-  showToast("로그인 정보를 찾을 수 없어. 다시 로그인해줘.", "error");
-  return;
-}
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  await new Promise(resolve => setTimeout(resolve, 700));
 
-  const newHabit = {
-    id: crypto.randomUUID(),
-    name: value,
-    position: habits.length,
-    created_at: new Date().toISOString(),
-    user_id: user.id
-  };
+  try {
+    const user = currentUser || await getCurrentUser();
+    const userError = !user ? new Error("no user") : null;
 
-  const { error } = await supabaseClient
-    .from("habits")
-    .insert([newHabit]);
+    if (userError || !user) {
+      console.error("getUser error:", userError);
+      showToast("로그인 정보를 찾을 수 없어. 다시 로그인해줘.", "error");
+      return;
+    }
 
-if (error) {
-  console.error("habits 저장 실패:", error);
-  showToast("습관 저장에 실패했어.", "error");
-  return;
-}
+    const newHabit = {
+      id: crypto.randomUUID(),
+      name: value,
+      position: habits.length,
+      created_at: new Date().toISOString(),
+      user_id: user.id
+    };
 
-habits.push(newHabit);
-syncHabitData();
-await saveState();
-input.value = "";
-renderAll();
-showToast("습관이 추가됐어.", "success");
+    const { error } = await supabaseClient
+      .from("habits")
+      .insert([newHabit]);
+
+    if (error) {
+      console.error("habits 저장 실패:", error);
+      showToast("습관 저장에 실패했어.", "error");
+      return;
+    }
+
+    habits.push(newHabit);
+    syncHabitData();
+    await saveState();
+    input.value = "";
+    renderAll();
+    showToast("습관이 추가됐어.", "success");
+  } finally {
+    addButton.disabled = false;
+    addButton.textContent = "습관 추가";
+    addButton.style.background = "";
+  }
 }
 
 async function deleteHabit(index) {
