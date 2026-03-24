@@ -38,6 +38,31 @@
 
 
   <style>
+    .streak-badge {
+  display: inline-block;
+  color: #ff6b00;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  background: rgba(255, 107, 0, 0.08);
+}
+
+.streak-badge.streak-good {
+  color: #ffb347;
+  border-color: rgba(255, 179, 71, 0.5);
+  background: rgba(255, 179, 71, 0.12);
+  box-shadow: 0 0 10px rgba(255, 179, 71, 0.18);
+}
+
+.streak-badge.streak-great {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.7);
+  background: rgba(255, 209, 102, 0.16);
+  box-shadow: 0 0 14px rgba(255, 209, 102, 0.28);
+}
     * { box-sizing: border-box; }
 
     :root {
@@ -2218,7 +2243,8 @@ async function getCurrentUser() {
 
 await hydrateChecksForCurrentMonth();
 
-// 👉 이 줄 잠깐 막기
+// TODO: loadHabitsFromSupabase에서 saveLocalState() 재활성화 여부는
+// 오프라인 백업 로직 점검 후 다시 결정
 // saveLocalState();
 
 renderAll();
@@ -3063,6 +3089,12 @@ async function moveHabitByDrag(fromIndex, toIndex) {
       return `🔥 ${streak} DAY STREAK`;
     }
 
+    function getStreakBadgeClass(streak) {
+  if (streak >= 14) return "streak-badge streak-great";
+  if (streak >= 7) return "streak-badge streak-good";
+  return "streak-badge";
+}
+
     function getHabitCardData(habit) {
       const checks = ensureHabitData(habit.id);
       const done = checks.filter(Boolean).length;
@@ -3071,12 +3103,13 @@ async function moveHabitByDrag(fromIndex, toIndex) {
       const percent = Math.round((done / daysInMonth) * 100);
 
       return {
-        done,
-        todayDone,
-        streak,
-        percent,
-        streakLabel: getStreakBadge(streak)
-      };
+  done,
+  todayDone,
+  streak,
+  percent,
+  streakLabel: getStreakBadge(streak),
+  streakClass: getStreakBadgeClass(streak)
+};
     }
 
     function escapeHtml(text) {
@@ -3102,8 +3135,7 @@ function renderHabitList() {
 
   habits.forEach((habit, index) => {
     const row = document.createElement("div");
-    const { done, todayDone, percent, streakLabel } = getHabitCardData(habit);
-
+    const { done, todayDone, percent, streakLabel, streakClass } = getHabitCardData(habit);
     row.className = `habit-row ${todayDone ? "today-done" : ""} ${editingHabitId === habit.id ? "editing" : ""}`;
     row.draggable = editingHabitId !== habit.id;
 
@@ -3130,8 +3162,7 @@ function renderHabitList() {
               : `
                 <div class="habit-title-row">
                   <span class="habit-name">${escapeHtml(habit.name)}</span>
-                  <span class="streak-badge">${escapeHtml(streakLabel)}</span>
-                </div>
+                  <span class="${escapeHtml(streakClass)}">${escapeHtml(streakLabel)}</span>                </div>
               `
           }
           <div class="habit-progress-bar">
