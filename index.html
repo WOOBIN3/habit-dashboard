@@ -2289,7 +2289,9 @@ window.signIn = async function (event) {
     }
 
     currentUser = data.user;
+
     await loadHabitsFromSupabase();
+    await flushPendingChecks(); // ✅ 이거 추가
     showAppScreen();
 
   } catch (error) {
