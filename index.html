@@ -2168,92 +2168,88 @@ async function getCurrentUser() {
     }
 
    async function loadHabitsFromSupabase() {
-  const savedState = localStorage.getItem(getUserStorageKey());
+  console.log("L1 loadHabits 시작", {
+  currentUser,
+  storageKey: getUserStorageKey(),
+  online: navigator.onLine
+});
 
-  function openLocalBackup() {
-    if (!savedState) {
-      resetAppState()
-      renderAll();
-      return false;
-    }
-
-    try {
-      const parsedState = JSON.parse(savedState);
-
-      appState.habits = parsedState.habits || [];
-      appState.monthData = parsedState.monthData || {};
-      appState.pendingCheckQueue = parsedState.pendingCheckQueue || [];
-
-      if (!appState.monthData[monthKey]) {
-        appState.monthData[monthKey] = {};
-      }
-
-      renderAll();
-      return true;
-    } catch (error) {
-      console.error("로컬 데이터 열기 실패:", error);
-      resetAppState();
-      renderAll();
-      return false;
-    }
-  }
-
-  if (!navigator.onLine) {
-    const opened = openLocalBackup();
-
-    if (opened) {
-      showToast("오프라인 저장 데이터로 열었어.", "info");
-    } else {
-      showToast("오프라인이라 저장된 데이터만 볼 수 있어.", "error");
-    }
-
-    return;
-  }
+const savedState = localStorage.getItem(getUserStorageKey());
+console.log("L2 savedState 있음?", !!savedState);
 
   try {
     const user = currentUser || await getCurrentUser();
-
+    console.log("L3 user 값:", user);
+  
     if (!user) {
-      const opened = openLocalBackup();
-
-      if (opened) {
-        showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
-      }
-
-      return;
-    }
-
-    const { data, error } = await supabaseClient
-      .from("habits")
-      .select("id, name, position, created_at")
-      .eq("user_id", user.id)
-      .order("position", { ascending: true })
-      .order("created_at", { ascending: true });
-
-   if (error) {
+  console.log("L4 user 없음 -> 여기로 들어옴");
   const opened = openLocalBackup();
-
   if (opened) {
-    showToast("오프라인 저장 데이터로 열었어.", "info");
-  } else {
-    console.error("Supabase habits 불러오기 실패:", error.message || error);
+    showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
   }
-
   return;
 }
 
-    appState.habits = (data || []).map((h) => ({
+   if (!user) {
+  console.log("L4 user 없음 -> 여기로 들어옴");
+  const opened = openLocalBackup();
+  if (opened) {
+    showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
+  }
+  return;
+}
+
+console.log("L5 Supabase 쿼리 시작");
+
+const { data, error } = await supabaseClient
+  .from("habits")
+  .select("id, name, position, created_at")
+  .eq("user_id", user.id)
+  .order("position", { ascending: true })
+  .order("created_at", { ascending: true });
+
+    console.log("habits select 결과:", data);
+
+    if (error) {
+      const opened = openLocalBackup();
+      if (opened) {
+        showToast("오프라인 저장 데이터로 열었어.", "info");
+      } else {
+        console.error("Supabase habits 로드 전체 에러:", error);
+      }
+      return;
+    }
+
+    // 👇 여기부터 네가 넣은 코드
+    const serverHabits = (data || []).map((h) => ({
       id: h.id,
       name: h.name,
       position: h.position ?? 0
     }));
 
+    const localHabitsCount = Array.isArray(appState.habits) ? appState.habits.length : 0;
+
+    console.log("Supabase habits 불러옴:", {
+      userId: user.id,
+      serverCount: serverHabits.length,
+      localCount: localHabitsCount
+    });
+
+    if (serverHabits.length === 0 && localHabitsCount > 0) {
+      console.warn("서버 목록이 비어 있어서 로컬 습관을 유지함");
+      saveLocalState();
+      renderAll();
+      return;
+    }
+
+    appState.habits = serverHabits;
+
     await hydrateChecksForCurrentMonth();
     saveLocalState();
     renderAll();
-    } catch (error) {
-    const opened = openLocalBackup();
 
+  } catch (error) {
+    const opened = openLocalBackup();
     if (opened) {
       showToast("오프라인 저장 데이터로 열었어.", "info");
     } else {
@@ -2446,6 +2442,7 @@ window.signUp = async function () {
     };
 
     async function addHabit() {
+  console.log("addHabit 실행됨", currentUser);
   const input = document.getElementById("habitInput");
   const addButton = document.getElementById("addHabitBtn");
   const value = input.value.trim();
@@ -2502,6 +2499,8 @@ window.signUp = async function () {
       showToast("로그인이 만료됐어 😢 다시 로그인해줘", "error");
       return;
     }
+
+    console.log("DB 저장 성공");
 
     habits.push(newHabit);
     syncHabitData();
@@ -2683,19 +2682,28 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-    Promise.all(
-  getHabits().map((habit) => saveCheckToSupabase(habit.id, currentDay - 1, value))
-).then(async () => {
-  await saveState();
-  renderAll();
+    function setTodayAll(value) {
+  const habits = getHabits();
 
-  const today = getTodayStats();
+  habits.forEach((habit) => {
+    const checks = ensureHabitData(habit.id);
+    checks[currentDay - 1] = value;
+  });
 
-  if (today.total > 0 && today.done === today.total) {
-    showToast("오늘 목표 완료! 🔥", "success");
-    triggerHeroCompleteFlash();
-  }
-});
+  Promise.all(
+    habits.map((habit) => saveCheckToSupabase(habit.id, currentDay - 1, value))
+  ).then(async () => {
+    await saveState();
+    renderAll();
+
+    const today = getTodayStats();
+
+    if (today.total > 0 && today.done === today.total) {
+      showToast("오늘 목표 완료! 🔥", "success");
+      triggerHeroCompleteFlash();
+    }
+  });
+}
     
 
     function setMonthAll(value) {
