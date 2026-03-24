@@ -2168,47 +2168,25 @@ async function getCurrentUser() {
     }
 
    async function loadHabitsFromSupabase() {
-  console.log("L1 loadHabits 시작", {
-  currentUser,
-  storageKey: getUserStorageKey(),
-  online: navigator.onLine
-});
-
-const savedState = localStorage.getItem(getUserStorageKey());
-console.log("L2 savedState 있음?", !!savedState);
+  const savedState = localStorage.getItem(getUserStorageKey());
 
   try {
     const user = currentUser || await getCurrentUser();
-    console.log("L3 user 값:", user);
-  
+
     if (!user) {
-  console.log("L4 user 없음 -> 여기로 들어옴");
-  const opened = openLocalBackup();
-  if (opened) {
-    showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
-  }
-  return;
-}
+      const opened = openLocalBackup();
+      if (opened) {
+        showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
+      }
+      return;
+    }
 
-   if (!user) {
-  console.log("L4 user 없음 -> 여기로 들어옴");
-  const opened = openLocalBackup();
-  if (opened) {
-    showToast("로그인 정보를 못 불러와서 저장된 데이터로 열었어.", "info");
-  }
-  return;
-}
-
-console.log("L5 Supabase 쿼리 시작");
-
-const { data, error } = await supabaseClient
-  .from("habits")
-  .select("id, name, position, created_at")
-  .eq("user_id", user.id)
-  .order("position", { ascending: true })
-  .order("created_at", { ascending: true });
-
-    console.log("habits select 결과:", data);
+    const { data, error } = await supabaseClient
+      .from("habits")
+      .select("id, name, position, created_at")
+      .eq("user_id", user.id)
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true });
 
     if (error) {
       const opened = openLocalBackup();
@@ -2228,12 +2206,6 @@ const { data, error } = await supabaseClient
     }));
 
     const localHabitsCount = Array.isArray(appState.habits) ? appState.habits.length : 0;
-
-    console.log("Supabase habits 불러옴:", {
-      userId: user.id,
-      serverCount: serverHabits.length,
-      localCount: localHabitsCount
-    });
 
     if (serverHabits.length === 0 && localHabitsCount > 0) {
       console.warn("서버 목록이 비어 있어서 로컬 습관을 유지함");
