@@ -1675,6 +1675,29 @@ h1 {
     line-height: 1.4;
   }
 }
+
+.hero-complete-flash {
+  animation: heroFlash 0.8s ease;
+}
+
+@keyframes heroFlash {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 200, 100, 0);
+  }
+  30% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 200, 100, 0.9);
+  }
+  60% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 200, 100, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 200, 100, 0);
+  }
+}
   </style>
 </head>
 <body>
@@ -1718,7 +1741,7 @@ h1 {
       </div>
     </header>
     <div class="top-grid">
-      <div class="card">
+      <div id="heroCard" class="card">
         <div class="card-title">이번 달 전체 목표 진행률</div>
         <div class="big-progress">
           <div id="monthPercent" class="big-percent">0%</div>
@@ -1946,6 +1969,15 @@ function showToast(message, type = "info") {
   toastTimer = setTimeout(() => {
     toast.classList.remove("success", "error", "info");
   }, 2500);
+}
+
+function triggerHeroCompleteFlash() {
+  const heroCard = document.getElementById("heroCard");
+  if (!heroCard) return;
+
+  heroCard.classList.remove("hero-complete-flash");
+  void heroCard.offsetWidth;
+  heroCard.classList.add("hero-complete-flash");
 }
 
     function setAuthMessage(message, isError = false) {
@@ -2404,14 +2436,14 @@ window.signUp = async function () {
     };
 
     async function addHabit() {
-
   const input = document.getElementById("habitInput");
   const addButton = document.getElementById("addHabitBtn");
   const value = input.value.trim();
+  
+  if (addButton.disabled) return;
 
   if (!navigator.onLine) {
-    showToast("오프라인 상태에서는 새 습관을 추가할 수 없어.", "error");
-    return;
+  showToast("지금 인터넷 연결이 안 돼 있어 📡", "error");    return;
   }
 
   if (!value) {
@@ -2428,6 +2460,7 @@ window.signUp = async function () {
 
   addButton.disabled = true;
   addButton.textContent = "추가 중...";
+  showToast("습관 추가 중...", "info");
 
   await new Promise(resolve => requestAnimationFrame(resolve));
   await new Promise(resolve => setTimeout(resolve, 300));
@@ -2456,7 +2489,7 @@ window.signUp = async function () {
 
     if (error) {
       console.error("habits 저장 실패:", error);
-      showToast("습관 저장에 실패했어.", "error");
+      showToast("로그인이 만료됐어 😢 다시 로그인해줘", "error");
       return;
     }
 
@@ -2465,7 +2498,7 @@ window.signUp = async function () {
     await saveState();
     input.value = "";
     renderAll();
-    showToast("습관이 추가됐어.", "success");
+    showToast("습관 추가 완료! ✅", "success");
   } finally {
     addButton.disabled = false;
     addButton.textContent = "습관 추가";
@@ -2634,6 +2667,7 @@ document.addEventListener("keydown", function (event) {
 
   if (today.total > 0 && today.done === today.total) {
     showToast("오늘 목표 완료! 🔥", "success");
+    triggerHeroCompleteFlash();
   }
 });
     
@@ -2867,6 +2901,7 @@ async function syncAllChecksToSupabase() {
 
       if (today.total > 0 && today.done === today.total) {
       showToast("오늘 목표 완료! 🔥", "success");
+      triggerHeroCompleteFlash();
     }
     }
 
@@ -2898,6 +2933,7 @@ async function syncAllChecksToSupabase() {
 
      if (today.total > 0 && today.done === today.total) {
     showToast("오늘 목표 완료! 🔥", "success");
+    triggerHeroCompleteFlash();
     }
     }
 
