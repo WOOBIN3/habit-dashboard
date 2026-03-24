@@ -2242,6 +2242,8 @@ async function flushPendingChecks() {
   const queueCopy = [...appState.pendingCheckQueue];
   const failedQueue = [];
 
+  showToast("동기화 중...", "info");
+
   for (const item of queueCopy) {
     try {
       await saveCheckToSupabase(item.habitId, item.dayIndex, item.checked);
