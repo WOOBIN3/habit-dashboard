@@ -1919,10 +1919,11 @@ function showToast(message, type = "info") {
     }
 
     function showAppScreen() {
-      document.getElementById("authScreen").classList.add("hidden");
-      document.getElementById("appScreen").classList.remove("hidden");
-      setHeaderDate();
-    }
+     document.getElementById("authScreen").classList.add("hidden");
+     document.getElementById("appScreen").classList.remove("hidden");
+     setHeaderDate();
+     updateNetworkStatus();
+}
 
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
