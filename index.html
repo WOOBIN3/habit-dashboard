@@ -2244,9 +2244,12 @@ const { data, error } = await supabaseClient
 
     appState.habits = serverHabits;
 
-    await hydrateChecksForCurrentMonth();
-    saveLocalState();
-    renderAll();
+await hydrateChecksForCurrentMonth();
+
+// 👉 이 줄 잠깐 막기
+// saveLocalState();
+
+renderAll();
 
   } catch (error) {
     const opened = openLocalBackup();
@@ -2489,6 +2492,8 @@ window.signUp = async function () {
       created_at: new Date().toISOString(),
       user_id: user.id
     };
+
+    console.log("🔥 저장할 user_id:", user.id);
 
     const { data, error } = await supabaseClient
   .from("habits")
