@@ -3443,6 +3443,7 @@ function openOfflineFromSavedState(savedState) {
 
     showAppScreen();
     renderAll();
+    updateNetworkStatus();
     return true;
   } catch (error) {
     console.error("저장된 로컬 데이터 읽기 실패:", error);
