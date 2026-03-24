@@ -2243,6 +2243,7 @@ async function flushPendingChecks() {
   const failedQueue = [];
 
   showToast("동기화 중...", "info");
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   for (const item of queueCopy) {
     try {
@@ -2259,7 +2260,10 @@ async function flushPendingChecks() {
 if (failedQueue.length === 0) {
   showToast("오프라인 체크가 동기화됐어.", "success");
 } else {
-  showToast(`일부 체크(${failedQueue.length}개) 동기화 실패`, "error");
+showToast(`일부 체크(${failedQueue.length}개) 동기화 실패`, "error");
+  setTimeout(() => {
+    flushPendingChecks();
+  }, 3000);
 }
 }
 
