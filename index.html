@@ -1140,14 +1140,14 @@ h1 {
       background: linear-gradient(180deg, #e0bc68, #c9a44c);
       border-color: #e0bc68;
       box-shadow: 0 0 10px rgba(201,164,76,0.35);
-      transform: scale(1.15);
+      transform: scale(1.2);
       animation: checkPop 0.25s ease;
     }
 
     @keyframes checkPop {
       0% { transform: scale(1); }
-      50% { transform: scale(1.25); }
-      100% { transform: scale(1.15); }
+      50% { transform: scale(1.32); }
+      100% { transform: scale(1.2); }
     }
 
     .day-check:checked::after {
@@ -1166,11 +1166,11 @@ h1 {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 30px;
-      height: 30px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 2px solid var(--accent-strong);
-      box-shadow: 0 0 16px rgba(201,164,76,0.32);
+      box-shadow: 0 0 20px rgba(201,164,76,0.4);
       transform: translate(-50%, -50%);
       animation: pulseGold 0.75s ease-out;
       pointer-events: none;
@@ -2404,13 +2404,10 @@ window.signUp = async function () {
     };
 
     async function addHabit() {
-  console.log("addHabit 실행됨");
 
   const input = document.getElementById("habitInput");
   const addButton = document.getElementById("addHabitBtn");
   const value = input.value.trim();
-
-  console.log("잡은 버튼:", addButton);
 
   if (!navigator.onLine) {
     showToast("오프라인 상태에서는 새 습관을 추가할 수 없어.", "error");
@@ -2431,11 +2428,9 @@ window.signUp = async function () {
 
   addButton.disabled = true;
   addButton.textContent = "추가 중...";
-  addButton.style.background = "#666";
-  console.log("버튼 글자 변경 후:", addButton.textContent);
 
   await new Promise(resolve => requestAnimationFrame(resolve));
-  await new Promise(resolve => setTimeout(resolve, 700));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   try {
     const user = currentUser || await getCurrentUser();
@@ -2474,7 +2469,6 @@ window.signUp = async function () {
   } finally {
     addButton.disabled = false;
     addButton.textContent = "습관 추가";
-    addButton.style.background = "";
   }
 }
 
@@ -2630,19 +2624,19 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-    function setTodayAll(value) {
-      getHabits().forEach((habit) => {
-        const checks = ensureHabitData(habit.id);
-        checks[currentDay - 1] = value;
-      });
+    Promise.all(
+  getHabits().map((habit) => saveCheckToSupabase(habit.id, currentDay - 1, value))
+).then(async () => {
+  await saveState();
+  renderAll();
 
-      Promise.all(
-        getHabits().map((habit) => saveCheckToSupabase(habit.id, currentDay - 1, value))
-      ).then(async () => {
-        await saveState();
-        renderAll();
-      });
-    }
+  const today = getTodayStats();
+
+  if (today.total > 0 && today.done === today.total) {
+    showToast("오늘 목표 완료! 🔥", "success");
+  }
+});
+    
 
     function setMonthAll(value) {
       const promises = [];
@@ -2868,6 +2862,12 @@ async function syncAllChecksToSupabase() {
       renderAnalysis();
       renderCharts();
       renderHabitList();
+
+      const today = getTodayStats();
+
+      if (today.total > 0 && today.done === today.total) {
+      showToast("오늘 목표 완료! 🔥", "success");
+    }
     }
 
     async function toggleTodayFromCard(habitId) {
@@ -2893,6 +2893,12 @@ async function syncAllChecksToSupabase() {
       renderAnalysis();
       renderCharts();
       renderHabitList();
+
+      const today = getTodayStats();
+
+     if (today.total > 0 && today.done === today.total) {
+    showToast("오늘 목표 완료! 🔥", "success");
+    }
     }
 
 async function moveHabitByDrag(fromIndex, toIndex) {
