@@ -3340,7 +3340,9 @@ const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStre
             <div class="habit-progress-fill" style="width:${percent}%"></div>
           </div>
           <div class="habit-meta">
-            <span class="habit-status toggle-status">${todayDone ? "오늘 완료됨" : "오늘 미완료"}</span>
+            <span class="habit-status toggle-status">
+             ${todayDone ? "✅ 완료" : "⬜ 미완료"}
+             </span>
             <span>이번 달 ${done}/${daysInMonth}</span>
             <span class="${bestStreakClass}">🏆 최고 ${bestStreak}일</span>
             <span class="habit-progress-percent">${percent}%</span>
