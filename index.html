@@ -910,19 +910,15 @@ h1 {
     }
 
     .habit-title-row {
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-     gap: 6px;
-     flex-wrap: nowrap;
-     margin-bottom: 8px; 
-    }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
     .habit-name {
   font-size: 19px;
   font-weight: 900;
-  white-space: normal;   
-  word-break: keep-all;
+  white-space: nowrap;
   color: var(--text);
   min-width: 0;
 }
@@ -3324,7 +3320,7 @@ const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStre
 `
               : `
                 <div class="habit-title-row">
-                  <span class="habit-name">${escapeHtml(habit.name)}</span>
+                <span class="habit-name">${escapeHtml(habit.name)}</span>
                 <span class="${streakClass}">${escapeHtml(streakLabel)}</span>          `
           }
           <div class="habit-progress-bar">
