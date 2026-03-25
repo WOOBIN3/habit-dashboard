@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+  <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -38,18 +38,6 @@
 
 
   <style>
-    .streak-badge {
-  display: inline-block;
-  color: #ff6b00;
-  font-size: 12px;
-  font-weight: bold;
-  margin-left: 8px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 107, 0, 0.35);
-  background: rgba(255, 107, 0, 0.08);
-}
-
 .streak-badge.streak-good {
   color: #ffb347;
   border-color: rgba(255, 179, 71, 0.5);
@@ -62,6 +50,29 @@
   border-color: rgba(255, 209, 102, 0.7);
   background: rgba(255, 209, 102, 0.16);
   box-shadow: 0 0 14px rgba(255, 209, 102, 0.28);
+  animation: streakGlow 1.8s ease-in-out infinite;
+}
+
+.streak-badge.streak-warning {
+  color: #ff7b7b;
+  border-color: rgba(255, 123, 123, 0.55);
+  background: rgba(255, 123, 123, 0.12);
+  box-shadow: 0 0 10px rgba(255, 123, 123, 0.16);
+}
+
+@keyframes streakGlow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 209, 102, 0.18);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 18px rgba(255, 209, 102, 0.38);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 209, 102, 0.18);
+  }
 }
     * { box-sizing: border-box; }
 
@@ -482,16 +493,16 @@ h1 {
     }
 
     .card {
-      background: linear-gradient(180deg, var(--card-2) 0%, var(--card) 100%);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      padding: 22px;
-      box-shadow: var(--shadow);
-      height: auto;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
-    }
+     background: linear-gradient(180deg, var(--card-2) 0%, var(--card) 100%);
+     border: 1px solid var(--line);
+     border-radius: var(--radius-xl);
+     padding: 22px;
+     box-shadow: var(--shadow);
+     height: auto;
+     position: relative;
+     overflow: hidden;
+     transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  }
 
     .card::before {
       content: "";
@@ -692,7 +703,12 @@ h1 {
 
     .progress-bar { height: 12px; }
     .small-progress { height: 8px; }
-    .habit-progress-bar { height: 8px; margin-top: 8px; margin-bottom: 8px; }
+    .habit-progress-bar {
+  height: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+}
 
     .progress-fill,
     .small-fill,
@@ -714,6 +730,8 @@ h1 {
 
     .habit-progress-fill {
       width: 0%;
+      height: 100%;
+      border-radius: 999px;
       background: linear-gradient(90deg, #6f5322 0%, #b98f3c 55%, #e0bc68 100%);
       box-shadow: 0 0 10px rgba(201,164,76,0.18);
     }
@@ -772,7 +790,7 @@ h1 {
 
     .habit-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 14px;
       background: linear-gradient(180deg, #121111 0%, #0b0b0b 100%);
@@ -780,8 +798,7 @@ h1 {
       border-radius: 20px;
       padding: 14px 16px;
       cursor: grab;
-      transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;      box-shadow: 0 8px 20px rgba(0,0,0,0.24);
-      will-change: transform;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;      will-change: transform;
     }
 
     .habit-row:hover {
@@ -803,26 +820,55 @@ h1 {
 }
 
     .habit-row.today-done {
-      animation: donePop 0.25s ease;
+  animation: donePop 0.38s ease;
 
-      border-color: rgba(224,188,104,0.25);
-      box-shadow:
-        0 14px 28px rgba(0,0,0,0.30),
-        0 0 0 1px rgba(224,188,104,0.22),
-        0 0 24px rgba(201,164,76,0.14),
-        inset 0 1px 0 rgba(255,255,255,0.03);
-      background:
-        radial-gradient(circle at right top, rgba(224,188,104,0.08), transparent 28%),
-        linear-gradient(180deg, #181511 0%, #0d0b0a 100%);
-      
-      transform: translateY(-1px) scale(1);
-    }
+  border-color: rgba(224,188,104,0.38);
+  box-shadow:
+    0 16px 30px rgba(0,0,0,0.32),
+    0 0 0 1px rgba(224,188,104,0.28),
+    0 0 30px rgba(201,164,76,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  background:
+    radial-gradient(circle at right top, rgba(224,188,104,0.12), transparent 30%),
+    linear-gradient(180deg, #1b1712 0%, #0d0b0a 100%);
+
+  transform: translateY(-1px) scale(1);
+}
 
     @keyframes donePop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.04);
+  }
+  65% {
+    transform: scale(0.995);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
+
+.click-pop {
+  animation: clickPop 0.32s ease;
+}
+
+@keyframes clickPop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.94);
+  }
+  70% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
     .habit-row.dragging { opacity: 0.45; }
 
     .habit-row.drag-over {
@@ -859,13 +905,17 @@ h1 {
       flex-direction: column;
       gap: 6px;
       flex: 1;
+    
+      align-self: flex-start;
     }
 
     .habit-title-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 6px;
+     flex-wrap: nowrap;
+     margin-bottom: 8px; 
     }
 
     .habit-name {
@@ -875,32 +925,77 @@ h1 {
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--text);
+      min-width: 0;
     }
 
     .streak-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 26px;
-      padding: 0 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(201,164,76,0.18);
-      background: linear-gradient(180deg, rgba(201,164,76,0.10), rgba(201,164,76,0.03));
-      color: var(--accent-strong);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      width: fit-content;
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.65;
+
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+
+  margin-top: 2px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+
+  color: #aaa;
+}
+
+    .best-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #ffd166;
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  background: rgba(255, 209, 102, 0.12);
+
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.25);
+}
+
+.best-streak-badge.best-streak-good {
+  color: #ffb347;
+  border-color: rgba(255, 179, 71, 0.45);
+  background: rgba(255, 179, 71, 0.14);
+  box-shadow: 0 0 10px rgba(255, 179, 71, 0.22);
+}
+
+.best-streak-badge.best-streak-great {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.6);
+  background: rgba(255, 209, 102, 0.18);
+  box-shadow: 0 0 14px rgba(255, 209, 102, 0.3);
+}
 
     .habit-meta {
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+    .habit-meta span {
+     display: inline-flex;
+     align-items: center;
+     white-space: nowrap;
+     line-height: 1.2;
+   }
 
     .habit-progress-percent {
       color: var(--accent-strong);
@@ -910,22 +1005,63 @@ h1 {
     }
 
     .habit-status {
-      color: var(--muted);
-      transition: color 0.2s ease;
-    }
+  color: var(--muted);
+  font-weight: 700;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  opacity: 0.92;
+}
 
-    .habit-row.today-done .habit-status {
-      color: var(--accent-strong);
-      font-weight: 800;
-      text-shadow: 0 0 10px rgba(201,164,76,0.18);
-    }
+.toggle-status {
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-status:hover {
+  opacity: 0.85;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  opacity: 0.8;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.habit-row:not(.today-done) .habit-status {
+  color: #c98f8f;
+}
+
+.habit-row.today-done .habit-status {
+  color: var(--accent-strong);
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(201,164,76,0.18);
+  opacity: 1;
+
+  padding: 3px 8px;
+border-radius: 999px;
+border: 1px solid rgba(255, 209, 102, 0.45);
+background: rgba(255, 209, 102, 0.12);
+box-shadow: 0 0 10px rgba(255, 209, 102, 0.14);
+}
 
     .habit-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+     display: flex;
+     align-items: flex-start;
+     justify-content: flex-end;
+     gap: 8px;
+     flex-shrink: 0;
+  }
 
     .move-btn {
       width: 38px;
@@ -1526,9 +1662,10 @@ h1 {
 
 .habit-meta {
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 11px;
   line-height: 1.4;
+  margin-top: 10px;
 }
 
 .drag-handle {
@@ -1804,7 +1941,7 @@ h1 {
         <div class="section-sub">루틴을 추가하고 바로 관리할 수 있어.</div>
 
         <div class="input-row">
-          <input id="habitInput" class="habit-input" type="text" placeholder="예: 운동, 독서, 일찍 자기" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addHabit(); }" />
+          <input id="habitInput" class="habit-input" type="text" placeholder="예: 물 1L 마시기, 운동 10분" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addHabit(); }" />
           <button id="addHabitBtn" class="add-btn" onclick="addHabit()">습관 추가</button>        </div>
 
         <div class="bulk-actions" style="display: grid; grid-template-columns: 1fr 1fr;">
@@ -1954,6 +2091,10 @@ h1 {
 
       const dateText = `${currentYear}.${String(currentMonth).padStart(2, "0")}.${String(currentDay).padStart(2, "0")}`;
       el.textContent = dateText;
+    }
+
+    function openLocalBackup() {
+      return null;
     }
     
 function updateNetworkStatus() {
@@ -3074,25 +3215,43 @@ async function moveHabitByDrag(fromIndex, toIndex) {
       });
     }
 
-    function getStreak(checks) {
-      let streak = 0;
-      for (let i = currentDay - 1; i >= 0; i--) {
-        if (checks[i]) streak++;
-        else break;
-      }
-      return streak;
+    function getBestStreak(checks) {
+  let best = 0;
+  let current = 0;
+
+  for (let i = 0; i < checks.length; i++) {
+    if (checks[i]) {
+      current++;
+      if (current > best) best = current;
+    } else {
+      current = 0;
     }
+  }
+
+  return best;
+}
 
     function getStreakBadge(streak) {
-      if (streak >= 14) return `🔥 ${streak} DAY STREAK 🏆`;
-      if (streak >= 7) return `🔥 ${streak} DAY STREAK 👑`;
-      return `🔥 ${streak} DAY STREAK`;
-    }
+  if (streak === 0) return "연속 없음";
+  if (streak >= 14) return "🔥 " + streak + "일 연속 🏆";
+  if (streak >= 7) return "🔥 " + streak + "일 연속 👑";
+  return "🔥 " + streak + "일 연속";
+}
 
     function getStreakBadgeClass(streak) {
+  if (streak === 0) return "streak-badge streak-warning";
   if (streak >= 14) return "streak-badge streak-great";
   if (streak >= 7) return "streak-badge streak-good";
   return "streak-badge";
+}
+
+function getStreak(checks) {
+  let streak = 0;
+  for (let i = currentDay - 1; i >= 0; i--) {
+    if (checks[i]) streak++;
+    else break;
+  }
+  return streak;
 }
 
     function getHabitCardData(habit) {
@@ -3100,16 +3259,26 @@ async function moveHabitByDrag(fromIndex, toIndex) {
       const done = checks.filter(Boolean).length;
       const todayDone = checks[currentDay - 1];
       const streak = getStreak(checks);
+      const bestStreak = getBestStreak(checks);
       const percent = Math.round((done / daysInMonth) * 100);
 
-      return {
+   return {
   done,
   todayDone,
   streak,
+  bestStreak,
   percent,
   streakLabel: getStreakBadge(streak),
-  streakClass: getStreakBadgeClass(streak)
+  streakClass: getStreakBadgeClass(streak),
+
+  bestStreakClass:
+    bestStreak >= 14
+      ? "best-streak-badge best-streak-great"
+      : bestStreak >= 7
+      ? "best-streak-badge best-streak-good"
+      : "best-streak-badge",
 };
+
     }
 
     function escapeHtml(text) {
@@ -3124,20 +3293,23 @@ async function moveHabitByDrag(fromIndex, toIndex) {
 
 function renderHabitList() {
   const list = document.getElementById("habitList");
-  list.innerHTML = "";
+list.innerHTML = "";
 
-  const habits = getHabits();
+const habits = getHabits();
 
-  if (habits.length === 0) {
-  list.innerHTML = `<div class="empty-text">아직 습관이 없어요. 위에서 하나 추가해보세요.</div>`;
+if (habits.length === 0) {
+  list.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-title">아직 습관이 없어요</div>
+      <div class="empty-sub">위에서 첫 습관을 추가해보세요</div>
+    </div>
+  `;
   return;
-} 
+}
 
   habits.forEach((habit, index) => {
     const row = document.createElement("div");
-    const { done, todayDone, percent, streakLabel, streakClass } = getHabitCardData(habit);
-    row.className = `habit-row ${todayDone ? "today-done" : ""} ${editingHabitId === habit.id ? "editing" : ""}`;
-    row.draggable = editingHabitId !== habit.id;
+const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStreakClass } = getHabitCardData(habit);    row.draggable = editingHabitId !== habit.id;
 
     row.innerHTML = `
       <div class="habit-left">
@@ -3162,15 +3334,15 @@ function renderHabitList() {
               : `
                 <div class="habit-title-row">
                   <span class="habit-name">${escapeHtml(habit.name)}</span>
-                  <span class="${escapeHtml(streakClass)}">${escapeHtml(streakLabel)}</span>                </div>
-              `
+                <span class="${streakClass}">${escapeHtml(streakLabel)}</span>          `
           }
           <div class="habit-progress-bar">
             <div class="habit-progress-fill" style="width:${percent}%"></div>
           </div>
           <div class="habit-meta">
-            <span class="habit-status">${todayDone ? "오늘 완료됨" : "오늘 미완료"}</span>
+            <span class="habit-status toggle-status">${todayDone ? "오늘 완료됨" : "오늘 미완료"}</span>
             <span>이번 달 ${done}/${daysInMonth}</span>
+            <span class="${bestStreakClass}">🏆 최고 ${bestStreak}일</span>
             <span class="habit-progress-percent">${percent}%</span>
           </div>
         </div>
@@ -3226,16 +3398,27 @@ row.addEventListener("drop", (e) => {
   moveHabitByDrag(draggedIndex, index);
 });
 
-    row.addEventListener("click", (e) => {
-      const target = e.target;
-if (
-  target.closest("button") ||
-  target.closest(".edit-input")
-) return;
+ row.addEventListener("click", (e) => {
+  const target = e.target;
 
-      toggleTodayFromCard(habit.id);
-    });
+  if (
+    target.closest("button") ||
+    target.closest(".edit-input")
+  ) return;
 
+  const toggleTarget = target.closest(".toggle-status");
+  if (!toggleTarget) return;
+
+  row.classList.add("click-pop");
+
+  setTimeout(() => {
+    row.classList.remove("click-pop");
+  }, 200);
+
+  setTimeout(() => {
+    toggleTodayFromCard(habit.id);
+  }, 120);
+});
     list.appendChild(row);
   });
 }
