@@ -1038,21 +1038,13 @@ h1 {
   color: var(--muted);
 }
 
-.habit-row:not(.today-done) .habit-status {
-  color: #c98f8f;
+.habit-row.today-done .habit-status {
+  color: #4ade80;
+  font-weight: 600;
 }
 
-.habit-row.today-done .habit-status {
-  color: var(--accent-strong);
-  font-weight: 800;
-  text-shadow: 0 0 10px rgba(201,164,76,0.18);
-  opacity: 1;
-
-  padding: 3px 8px;
-border-radius: 999px;
-border: 1px solid rgba(255, 209, 102, 0.45);
-background: rgba(255, 209, 102, 0.12);
-box-shadow: 0 0 10px rgba(255, 209, 102, 0.14);
+.habit-row:not(.today-done) .habit-status {
+  color: #9ca3af;
 }
 
     .habit-right {
@@ -3341,7 +3333,7 @@ const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStre
           </div>
           <div class="habit-meta">
             <span class="habit-status toggle-status">
-             ${todayDone ? "✅ 완료" : "⬜ 미완료"}
+             ${todayDone ? "완료" : "미완료"}
              </span>
             <span>이번 달 ${done}/${daysInMonth}</span>
             <span class="${bestStreakClass}">🏆 최고 ${bestStreak}일</span>
