@@ -2861,16 +2861,14 @@ function setupInstallButton() {
       return;
     }
 
-    if (isIosDevice()) {
-      const guide = document.getElementById("iosInstallGuide");
-      if (guide) {
-        guide.classList.remove("hidden");
-      }
+    const guide = document.getElementById("iosInstallGuide");
+    if (guide) {
+      guide.classList.remove("hidden");
       return;
     }
 
     if (!deferredInstallPrompt) {
-      showToast("이 기기에서는 지금 설치 버튼을 바로 띄울 수 없어.", "info");
+      showToast("설치 안내를 열 수 없어.", "info");
       return;
     }
 
@@ -4939,14 +4937,17 @@ window.addEventListener("DOMContentLoaded", () => {
   if (installBtn) {
     if (isStandaloneMode()) {
       installBtn.classList.add("hidden");
-    } else if (isIosDevice()) {
+    } else {
       installBtn.classList.remove("hidden");
+      installBtn.style.display = "inline-flex";
+      installBtn.style.opacity = "1";
+      installBtn.style.visibility = "visible";
     }
   }
 
   if (!banner) return;
 
-  if (isIosDevice() && !isStandaloneMode()) {
+  if (!isStandaloneMode()) {
     setTimeout(() => {
       banner.classList.remove("hidden");
       banner.style.display = "block";
