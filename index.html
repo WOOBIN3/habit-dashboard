@@ -462,6 +462,10 @@ h1 {
       margin-bottom: 18px;
     }
 
+#selectedHabitPanel {
+  min-height: 180px;
+}
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -801,10 +805,128 @@ h1 {
       transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;      will-change: transform;
     }
 
+.habit-row.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #facc15 0%, #d4a017 100%);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.35);
+}
+
+.habit-row.selected {
+  border-color: #f5c96a;
+  box-shadow:
+    0 0 0 1px rgba(245, 201, 106, 0.22),
+    0 8px 20px rgba(245, 201, 106, 0.14);
+}
+
+.selected-habit-panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #121110 0%, #0b0b0b 100%);
+  padding: 15px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  margin-bottom: 14px;
+}
+
+.selected-habit-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.selected-habit-name {
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.selected-habit-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.selected-habit-streak-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.selected-habit-meta {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(245, 241, 232, 0.72);
+  margin-bottom: 12px;
+}
+
+.selected-habit-actions {
+  margin-top: 10px;
+}
+
+.selected-habit-toggle-btn {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #4a3f31;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #171513 0%, #11100f 100%);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease, opacity 0.18s ease;
+}
+
+.selected-habit-toggle-btn:hover {
+  border-color: #6a5842;
+  background: linear-gradient(180deg, #1b1815 0%, #141210 100%);
+}
+
+.selected-habit-toggle-btn.is-done {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.08);
+  color: #86efac;
+}
+
+.selected-habit-toggle-btn.flash {
+  animation: buttonFlash 0.45s ease;
+}
+
+@keyframes buttonFlash {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(74, 222, 128, 0);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
     .habit-row:hover {
       border-color: #40372d;
       transform: translateY(-1px);
       box-shadow: 0 12px 24px rgba(0,0,0,0.26);
+      background: linear-gradient(180deg, #151311 0%, #0f0e0d 100%);
     }
 
 @media (max-width: 700px) {
@@ -812,11 +934,6 @@ h1 {
     transform: none;
     box-shadow: 0 8px 20px rgba(0,0,0,0.24);
   }
-}
-
-    .habit-row:active {
-     transform: scale(0.98);
-     opacity: 0.9;
 }
 
     .habit-row.today-done {
@@ -871,10 +988,30 @@ h1 {
 
     .habit-row.dragging { opacity: 0.45; }
 
-    .habit-row.drag-over {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(201,164,76,0.16);
-    }
+.habit-row.touch-dragging {
+  opacity: 0.75;
+  transform: none;
+  border-color: #ffd54f;
+  box-shadow:
+    0 0 0 1px rgba(255, 213, 79, 0.22),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+  z-index: 20;
+}
+
+.habit-list.drag-active .habit-row {
+  opacity: 0.45;
+}
+
+.habit-list.drag-active .habit-row.touch-dragging {
+  opacity: 0.92;
+}
+
+.habit-row.drag-over {
+  border-color: rgba(255, 213, 79, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 213, 79, 0.18),
+    inset 0 2px 0 rgba(255, 213, 79, 0.65);
+}
 
     .habit-left {
       display: flex;
@@ -917,14 +1054,24 @@ h1 {
   margin-bottom: 8px;
 }
 
-    .habit-name {
+.habit-streak-row {
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.habit-progress-bar {
+  margin-top: 6px;
+}
+
+ .habit-name {
   font-size: 19px;
   font-weight: 900;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
   color: var(--text);
   min-width: 0;
 }
-
     .streak-badge {
   display: inline-flex;
   align-items: center;
@@ -1001,13 +1148,6 @@ h1 {
       text-shadow: 0 0 10px rgba(201,164,76,0.16);
     }
 
-    .habit-status {
-  color: var(--muted);
-  font-weight: 700;
-  transition: color 0.2s ease, opacity 0.2s ease;
-  opacity: 0.92;
-}
-
 .toggle-status {
   cursor: pointer;
   user-select: none;
@@ -1035,160 +1175,135 @@ h1 {
   color: var(--muted);
 }
 
-.habit-row.today-done .habit-status {
-  color: #4ade80;
-  font-weight: 600;
-}
-
-.habit-row:not(.today-done) .habit-status {
-  color: #9ca3af;
-}
-
-    .habit-right {
-     display: flex;
-     align-items: flex-start;
-     justify-content: flex-end;
-     gap: 8px;
-     flex-shrink: 0;
-  }
-
-    .move-btn {
-      width: 38px;
-      height: 38px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: linear-gradient(180deg, #181512 0%, #11100f 100%);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 900;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-    }
-
-    .move-btn:hover {
-      border-color: #4a3f31;
-    }
-
-    .edit-btn {
-  min-width: 52px;
-  height: 42px;
-  border: 1px solid #4a3f31;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #1b1713 0%, #120f0d 100%);
-  color: var(--text);
+.habit-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  transition: all 0.25s ease;
+  border: 1px solid transparent;
+}
+
+.habit-status.done {
+  color: #86efac;
+  background: rgba(134, 239, 172, 0.12);
+  border-color: rgba(134, 239, 172, 0.22);
+  box-shadow: 0 0 10px rgba(134, 239, 172, 0.10);
+}
+
+.habit-status.pending {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.habit-row.today-done .habit-status.done {
+  color: #bbf7d0;
+  background: rgba(134, 239, 172, 0.16);
+  border-color: rgba(134, 239, 172, 0.28);
+  box-shadow:
+    0 0 12px rgba(134, 239, 172, 0.12),
+    0 0 24px rgba(134, 239, 172, 0.08);
+}
+
+.habit-row:not(.today-done) .habit-status.pending {
+  opacity: 0.92;
+}
+
+.habit-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.habit-actions-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.move-btn,
+.edit-btn,
+.delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.88);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+  backdrop-filter: blur(6px);
+}
+
+.move-btn:hover,
+.edit-btn:hover,
+.delete-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.move-btn:active,
+.edit-btn:active,
+.delete-btn:active {
+  transform: scale(0.96);
+}
+
+.move-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.edit-btn {
+  color: #f8fafc;
 }
 
 .edit-btn:hover {
-  border-color: #8d6a2a;
-  color: var(--accent-strong);
+  border-color: rgba(96, 165, 250, 0.28);
+  background: rgba(96, 165, 250, 0.10);
+  color: #bfdbfe;
 }
 
-.save-btn,
-.cancel-btn {
-  min-width: 52px;
-  height: 42px;
-  border-radius: 14px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 800;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+.delete-btn {
+  color: #fca5a5;
 }
 
-.save-btn {
-  border: 1px solid #8d6a2a;
-  background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent) 52%, #a77c31 100%);
-  color: #16120b;
+.delete-btn:hover {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.10);
+  color: #fecaca;
 }
 
-.cancel-btn {
-  border: 1px solid #4a3f31;
-  background: linear-gradient(180deg, #1b1713 0%, #120f0d 100%);
-  color: var(--text);
+.habit-row.selected .move-btn,
+.habit-row.selected .edit-btn,
+.habit-row.selected .delete-btn {
+  border-color: rgba(255, 215, 0, 0.14);
 }
-
-.save-btn:hover,
-.cancel-btn:hover {
-  filter: brightness(1.05);
-}
-
-.edit-input {
-  width: 100%;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(201,164,76,0.35);
-  background: linear-gradient(180deg, #0d0c0b 0%, #14110e 100%);
-  color: var(--text);
-  padding: 0 12px;
-  font-size: 15px;
-  outline: none;
-}
-
-.edit-input:focus {
-  border-color: rgba(201,164,76,0.7);
-  box-shadow: 0 0 0 3px rgba(201,164,76,0.10);
-}
-
-.edit-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.edit-wrap {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.habit-row.editing {
-  align-items: flex-start;
-}
-
-.habit-row.editing .habit-left {
-  width: 100%;
-}
-
-.habit-row.editing .habit-text {
-  width: 100%;
-}
-
-.habit-row.editing .habit-right {
-  display: none;
-}
-
-.habit-row.editing .edit-input {
-  width: 100%;
-}
-
-.habit-row.editing .edit-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-    .delete-btn {
-      width: 42px;
-      height: 42px;
-      border: 1px solid #4a2d29;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #1b1211 0%, #120d0c 100%);
-      color: var(--text);
-      font-size: 22px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-    }
-
-    .delete-btn:hover {
-      background: linear-gradient(180deg, #b6574b 0%, var(--danger) 100%);
-      color: white;
-      border-color: transparent;
-    }
 
     .table-wrap {
       overflow-x: auto;
@@ -1507,7 +1622,7 @@ h1 {
   }
 
   body {
-    padding: 8px;
+    padding: 12px;
   }
 
   .app-header {
@@ -1523,7 +1638,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: nowrap;
   }
 
@@ -1605,11 +1720,28 @@ h1 {
 .habit-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: 14px;
-  min-height: 132px;
-  position: relative;   /* 🔥 추가 */
-  padding: 14px 16px 44px 16px;
+  align-items: start;
+  gap: 12px;
+  min-height: 0;
+  position: relative;
+  padding: 14px;
+
+ transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.habit-row:active {
+  transform: scale(0.97);
+}
+
+.habit-row.selected::after {
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
+.habit-row.selected {
+  box-shadow: 0 0 0 2px #ffd54f, 0 6px 18px rgba(255, 213, 79, 0.25);
 }
 
 .habit-left {
@@ -1618,26 +1750,26 @@ h1 {
 }
 
 .habit-right {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  align-items: end;
-  min-width: 140px;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 118px;
+  height: auto;
 }
 
 .habit-actions-top {
   display: grid;
-  grid-template-columns: 36px 36px 48px;
-  gap: 6px;
+  grid-template-columns: 34px 34px 34px;
+  gap: 5px; 
   justify-content: end;
-  align-self: flex-start;
 }
 
 .habit-actions-bottom {
-  position: absolute;
-  right: 12px;
-  bottom: 0;
+  position: static;
 }
+
 
 .habit-title-row {
   align-items: flex-start;
@@ -1666,6 +1798,22 @@ h1 {
 
 .habit-name {
   font-size: 17px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.habit-title-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.habit-text {
+  min-width: 0;
 }
 
 .habit-progress-bar {
@@ -1673,27 +1821,29 @@ h1 {
   margin-bottom: 6px;
 }
 
-.edit-btn {
-  min-width: 52px;
-  height: 38px;
-  border-radius: 11px;
-  font-size: 11px;
-}
-
 .move-btn,
 .delete-btn {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   font-size: 15px;
 }
 
 .edit-btn {
-  min-width: 52px;
-  height: 44px;
+  min-width: 34px;
+  height: 34px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 10px;
+  padding: 0 6px;
 }
+
+.habit-row.selected::after {
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
   /* 모바일 카드/버튼 압축 */
 .card,
 .stat-card {
@@ -1787,11 +1937,26 @@ h1 {
     gap: 12px;
     margin-bottom: 12px;
   }
+  
+.main-grid {
+  grid-template-columns: 1fr;
+}
 
   .card {
     padding: 14px;
     border-radius: 18px;
   }
+
+  .card.selected {
+  border: 1px solid #f5c96a;
+  box-shadow: 0 0 0 1px rgba(245,201,106,0.2),
+              0 8px 20px rgba(245,201,106,0.15);
+  transform: translateY(-2px);
+}
+
+.card:active {
+  transform: scale(0.97);
+}
 
     .chart-card {
     min-height: auto;
@@ -1835,6 +2000,85 @@ h1 {
     font-size: 11px;
     line-height: 1.4;
   }
+
+  .header-row {
+  gap: 6px;
+}
+
+.header-right {
+  gap: 6px;
+}
+
+.pending-sync-badge,
+.install-btn,
+.network-pill,
+.logout-btn {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.selected-habit-panel {
+  padding: 13px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+.selected-habit-title {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.selected-habit-name {
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+
+.selected-habit-status {
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.selected-habit-streak-grid {
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.selected-habit-streak-card {
+  padding: 9px;
+  border-radius: 12px;
+}
+
+.selected-habit-streak-label {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.selected-habit-streak-value {
+  font-size: 15px;
+}
+
+.selected-habit-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.selected-habit-actions {
+  margin-top: 8px;
+}
+
+.selected-habit-toggle-btn {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
 }
 
 .hero-complete-flash {
@@ -1859,6 +2103,207 @@ h1 {
     box-shadow: 0 0 0 rgba(255, 200, 100, 0);
   }
 }
+
+.habit-row:active {
+  transform: scale(0.97);
+}
+
+.habit-row.flash {
+  animation: habitFlash 0.35s ease;
+}
+
+.habit-row.success-pop {
+  animation: habitSuccessPop 0.55s ease;
+}
+
+@keyframes habitSuccessPop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(120, 255, 180, 0);
+  }
+
+  30% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 6px rgba(120, 255, 180, 0.10);
+  }
+
+  60% {
+    transform: scale(1.015);
+    box-shadow: 0 0 18px rgba(120, 255, 180, 0.22);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(120, 255, 180, 0);
+  }
+}
+
+.streak-pop {
+  animation: streakPop 0.4s ease;
+}
+
+@keyframes streakPop {
+  0% {
+    transform: scale(1);
+    color: #fff;
+  }
+  50% {
+  transform: scale(1.6);
+  }
+  100% {
+    transform: scale(1);
+    color: #fff;
+  }
+}
+
+@keyframes habitFlash {
+  0% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+  }
+  100% {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+  }
+}
+
+.habit-row.success-glow {
+  animation: successGlow 0.45s ease;
+}
+
+@keyframes successGlow {
+  0% {
+    transform: scale(1.02);
+    box-shadow: 0 0 10px rgba(80, 255, 160, 0.4);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 60px rgba(80, 255, 160, 0.9);
+  }
+  100% {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(80, 255, 160, 0.4);
+  }
+}
+
+#selectedHabitPanel {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  height: 100%;
+  min-height: 220px;
+
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  gap: 12px;
+}
+
+.empty-state .icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+
+.empty-state .title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.empty-state .desc {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.empty-icon {
+  font-size: 22px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.empty-desc {
+  font-size: 13px;
+  color: #aaa;
+}
+
+#selectedHabitPanel.show .empty-state {
+  animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+
+#selectedHabitToggleBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#selectedHabitPanel.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.selected-habit-panel.updating {
+  opacity: 0.85;
+  transform: translateY(6px);
+}
+
+.selected-habit-panel.success-pulse {
+  animation: panelPulse 0.35s ease;
+}
+
+@keyframes panelPulse {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 rgba(80, 255, 160, 0);
+  }
+  50% {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 0 0 24px rgba(80, 255, 160, 0.35);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 rgba(80, 255, 160, 0);
+  }
+}
+
+.selected-habit-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+.selected-habit-toggle-btn.done-flash {
+  box-shadow: 0 0 20px rgba(0, 255, 120, 0.6);
+  transition: box-shadow 0.3s ease;
+}
+
   </style>
 </head>
 <body>
@@ -1956,6 +2401,41 @@ h1 {
         <div class="section-sub">루틴 순서 변경, 삭제, 관리</div>
         <div id="habitList" class="habit-list"></div>
       </div>
+
+<div class="selected-habit-panel" id="selectedHabitPanel">
+  <div class="selected-habit-title">선택한 습관</div>
+  <div class="selected-habit-name" id="selectedHabitName">선택 없음</div>
+
+  <div class="selected-habit-status" id="selectedHabitStatus">
+    상태 없음
+  </div>
+
+  <div class="selected-habit-streak-grid">
+    <div class="selected-habit-streak-card">
+      <div class="selected-habit-streak-label">현재 연속</div>
+      <div class="selected-habit-streak-value" id="selectedHabitCurrentStreak">-</div>
+    </div>
+    <div class="selected-habit-streak-card">
+      <div class="selected-habit-streak-label">최고 연속</div>
+      <div class="selected-habit-streak-value" id="selectedHabitBestStreak">-</div>
+    </div>
+  </div>
+
+  <div class="selected-habit-meta" id="selectedHabitMeta">
+  </div>
+
+  <div class="progress-bar-wrapper">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+  <div class="selected-habit-actions">
+    <button class="selected-habit-toggle-btn" id="selectedHabitToggleBtn" onclick="toggleSelectedHabitToday()">
+      오늘 완료 처리
+    </button>
+  </div>
+</div>
 
       <div class="stats-grid" style="margin-bottom: 0;">
         <div class="stat-card">
@@ -2082,9 +2562,31 @@ h1 {
       el.textContent = dateText;
     }
 
-    function openLocalBackup() {
-      return null;
+function openLocalBackup() {
+  try {
+    const storageKey = getUserStorageKey();
+    const saved = localStorage.getItem(storageKey);
+
+    if (!saved) return false;
+
+    const parsed = JSON.parse(saved);
+
+    appState.habits = Array.isArray(parsed.habits) ? parsed.habits : [];
+    appState.monthData = parsed.monthData || {};
+    appState.pendingCheckQueue = Array.isArray(parsed.pendingCheckQueue)
+      ? parsed.pendingCheckQueue
+      : [];
+
+    if (!appState.monthData[monthKey]) {
+      appState.monthData[monthKey] = {};
     }
+
+    return true;
+  } catch (error) {
+    console.error("로컬 백업 열기 실패:", error);
+    return false;
+  }
+}
     
 function updateNetworkStatus() {
   const statusEl = document.getElementById("networkStatus");
@@ -2250,20 +2752,39 @@ async function getCurrentUser() {
       return;
       }
 
-      const monthChecks = {};
-      appState.habits.forEach((habit) => {
-        monthChecks[habit.id] = Array(daysInMonth).fill(false);
-      });
+const localMonthChecks = appState.monthData[monthKey] || {};
+const monthChecks = {};
 
-      (data || []).forEach((row) => {
-        const day = Number(String(row.check_date).split("-")[2]);
-        if (!monthChecks[row.habit_id]) return;
-        if (day >= 1 && day <= daysInMonth) {
-          monthChecks[row.habit_id][day - 1] = !!row.checked;
-        }
-      });
+appState.habits.forEach((habit) => {
+  const localChecks = Array.isArray(localMonthChecks[habit.id])
+    ? [...localMonthChecks[habit.id]]
+    : Array(daysInMonth).fill(false);
 
-      appState.monthData[monthKey] = monthChecks;
+  if (localChecks.length !== daysInMonth) {
+    const resizedChecks = Array(daysInMonth).fill(false);
+
+    for (let i = 0; i < Math.min(localChecks.length, daysInMonth); i++) {
+      resizedChecks[i] = localChecks[i];
+    }
+
+    monthChecks[habit.id] = resizedChecks;
+  } else {
+    monthChecks[habit.id] = localChecks;
+  }
+});
+
+(data || []).forEach((row) => {
+  const day = Number(String(row.check_date).split("-")[2]);
+
+  if (!monthChecks[row.habit_id]) return;
+
+  if (day >= 1 && day <= daysInMonth) {
+    monthChecks[row.habit_id][day - 1] = !!row.checked;
+  }
+});
+
+appState.monthData[monthKey] = monthChecks;
+saveLocalState();
     }
 
     async function saveState() {
@@ -2322,10 +2843,12 @@ async function getCurrentUser() {
       }
     }
 
-   async function loadHabitsFromSupabase() {
+async function loadHabitsFromSupabase() {
   const savedState = localStorage.getItem(getUserStorageKey());
 
   try {
+    openLocalBackup();
+
     const user = currentUser || await getCurrentUser();
 
     if (!user) {
@@ -2369,13 +2892,19 @@ async function getCurrentUser() {
       return;
     }
 
-    appState.habits = serverHabits;
+    if (Array.isArray(serverHabits) && serverHabits.length > 0) {
+  const existingIds = new Set(appState.habits.map(h => h.id));
+
+  serverHabits.forEach(habit => {
+    if (!existingIds.has(habit.id)) {
+      appState.habits.push(habit);
+    }
+  });
+}
 
 await hydrateChecksForCurrentMonth();
 
-// TODO: loadHabitsFromSupabase에서 saveLocalState() 재활성화 여부는
-// 오프라인 백업 로직 점검 후 다시 결정
-// saveLocalState();
+saveLocalState();
 
 renderAll();
 
@@ -3138,6 +3667,111 @@ async function moveHabitByDrag(fromIndex, toIndex) {
       renderAll();
     }
 
+function clearTouchDragState() {
+document.querySelectorAll(".habit-row").forEach((el) => {
+  el.classList.remove("touch-dragging");
+  el.classList.remove("drag-over");
+  el.style.transform = "";
+});
+
+const list = document.querySelector(".habit-list");
+if (list) {
+  list.classList.remove("drag-active");
+}
+
+  if (touchHoldTimer) {
+    clearTimeout(touchHoldTimer);
+    touchHoldTimer = null;
+  }
+
+  touchDragIndex = null;
+  touchCurrentTargetIndex = null;
+  isTouchDragging = false;
+  touchMoved = false;
+}
+
+function startTouchDrag(index, row) {
+  touchDragIndex = index;
+  touchCurrentTargetIndex = index;
+  isTouchDragging = true;
+
+row.classList.add("touch-dragging");
+
+const list = document.querySelector(".habit-list");
+if (list) {
+  list.classList.add("drag-active");
+}
+
+if (navigator.vibrate) {
+  navigator.vibrate(30);
+}
+}
+
+function handleTouchMove(e) {
+  if (!e.touches || !e.touches.length) return;
+
+  const touch = e.touches[0];
+  const currentY = touch.clientY;
+  const offsetY = currentY - touchStartY;
+
+  if (Math.abs(currentY - touchStartY) > 18) {
+    touchMoved = true;
+  }
+
+  if (!isTouchDragging) return;
+
+  const rows = [...document.querySelectorAll(".habit-row")];
+  const draggingRow = rows[touchDragIndex];
+  if (draggingRow) {
+    draggingRow.style.transform = `translateY(${offsetY}px)`;
+  }
+
+  e.preventDefault();
+
+  document.querySelectorAll(".habit-row").forEach((el) => {
+    el.classList.remove("drag-over");
+  });
+
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!target) return;
+
+  const targetRow = target.closest(".habit-row");
+  if (!targetRow) return;
+
+  const targetIndex = rows.indexOf(targetRow);
+
+  if (targetIndex === -1 || targetIndex === touchDragIndex) return;
+
+  targetRow.classList.add("drag-over");
+  touchCurrentTargetIndex = targetIndex;
+}
+
+function handleTouchEnd(row, habitId) {
+  if (touchHoldTimer) {
+    clearTimeout(touchHoldTimer);
+    touchHoldTimer = null;
+  }
+
+  if (isTouchDragging) {
+    if (
+      touchDragIndex !== null &&
+      touchCurrentTargetIndex !== null &&
+      touchDragIndex !== touchCurrentTargetIndex
+    ) {
+      moveHabitByDrag(touchDragIndex, touchCurrentTargetIndex);
+    }
+
+    clearTouchDragState();
+    return;
+  }
+
+  if (!touchMoved) {
+    selectHabit(habitId);
+  }
+
+  clearTouchDragState();
+}
+
     function moveHabitDown(index) {
       const habits = getHabits();
       if (index === habits.length - 1) return;
@@ -3280,11 +3914,188 @@ function getStreak(checks) {
         .replace(/'/g, "&#039;");
     }
 
+let selectedHabitId = localStorage.getItem("selectedHabitId");
+
+let touchDragIndex = null;
+let touchStartY = 0;
+let touchCurrentTargetIndex = null;
+let touchHoldTimer = null;
+let isTouchDragging = false;
+let touchMoved = false;
+
+function selectHabit(id) {
+  if (String(selectedHabitId) === String(id)) {
+    selectedHabitId = null;
+    localStorage.removeItem("selectedHabitId");
+    renderAll();
+    return;
+  }
+
+  selectedHabitId = id;
+  localStorage.setItem("selectedHabitId", String(id));
+
+  renderAll();
+}
+
+const selectedEl = document.querySelector(".habit-row.selected");
+if (selectedEl) {
+  selectedEl.classList.remove("flash");
+  void selectedEl.offsetWidth;
+  selectedEl.classList.add("flash");
+}
+
+function renderSelectedHabitPanel() {
+  const panelEl = document.getElementById("selectedHabitPanel");
+  const nameEl = document.getElementById("selectedHabitName");
+  const metaEl = document.getElementById("selectedHabitMeta");
+  const toggleBtn = document.getElementById("selectedHabitToggleBtn");
+  const statusEl = document.getElementById("selectedHabitStatus");
+  const currentStreakEl = document.getElementById("selectedHabitCurrentStreak");
+  const bestStreakEl = document.getElementById("selectedHabitBestStreak");
+
+  if (!panelEl || !nameEl || !metaEl || !toggleBtn || !statusEl || !currentStreakEl || !bestStreakEl) return;
+
+  const habits = getHabits();
+  const selectedHabit = habits.find(habit => String(habit.id) === String(selectedHabitId));
+
+if (!selectedHabit) {
+  panelEl.classList.add("show");
+
+  metaEl.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">✨</div>
+      <div class="empty-title">습관을 선택해보세요</div>
+      <div class="empty-desc">
+        카드를 클릭하면 상세 정보와 진행 상황이 표시됩니다
+      </div>
+    </div>
+  `;
+  statusEl.textContent = "";
+  statusEl.classList.remove("is-done", "is-not-done");
+
+  currentStreakEl.textContent = "-";
+  bestStreakEl.textContent = "-";
+
+  currentStreakEl.parentElement.style.display = "none";
+  bestStreakEl.parentElement.style.display = "none";
+  toggleBtn.style.display = "none";
+
+  toggleBtn.disabled = true;
+  toggleBtn.textContent = "오늘 완료하기";
+  toggleBtn.classList.remove("is-done");
+
+  const progressFill = document.getElementById("progressFill");
+  if (progressFill) {
+    progressFill.style.width = "0%";
+  }
+
+  return;
+}
+
+metaEl.innerHTML = "";
+
+currentStreakEl.parentElement.style.display = "";
+bestStreakEl.parentElement.style.display = "";
+toggleBtn.style.display = "";
+
+panelEl.classList.remove("show");
+panelEl.classList.add("updating");
+
+setTimeout(() => {
+  panelEl.classList.add("show");
+  panelEl.classList.remove("updating");
+}, 10);
+
+  const { todayDone, percent, streakLabel, bestStreak } = getHabitCardData(selectedHabit);
+
+statusEl.textContent = todayDone ? "오늘 완료" : "오늘 미완료";
+statusEl.classList.remove("is-done", "is-not-done");
+statusEl.classList.add(todayDone ? "is-done" : "is-not-done");
+
+currentStreakEl.textContent = streakLabel;
+bestStreakEl.textContent = `${bestStreak}일`;
+
+  nameEl.textContent = selectedHabit.name;
+  metaEl.textContent =
+  `이번 달 진행률: ${percent}%\n` +
+  `선택한 습관을 오른쪽 버튼으로 바로 관리할 수 있습니다.`;
+
+  toggleBtn.disabled = false;
+  toggleBtn.textContent = todayDone ? "오늘 완료 취소" : "오늘 완료하기";
+
+  if (todayDone) {
+    toggleBtn.classList.add("is-done");
+  } else {
+    toggleBtn.classList.remove("is-done");
+  }
+
+const progressFill = document.getElementById("progressFill");
+if (progressFill) {
+  progressFill.style.width = percent + "%";
+}
+
+}
+async function toggleSelectedHabitToday() {
+  if (!selectedHabitId) return;
+
+  const habits = getHabits();
+  const selectedHabit = habits.find(habit => String(habit.id) === String(selectedHabitId));
+
+  if (!selectedHabit) return;
+
+  await toggleTodayFromCard(selectedHabit.id);
+ 
+const btn = document.getElementById("selectedHabitToggleBtn");
+if (btn) {
+  btn.classList.add("flash");
+
+  setTimeout(() => {
+    btn.classList.remove("flash");
+  }, 450);
+}
+
+renderAll();
+
+const selectedEl = document.querySelector(".habit-row.selected");
+if (selectedEl) {
+  selectedEl.classList.remove("success-pop");
+  void selectedEl.offsetWidth;
+  selectedEl.classList.add("success-pop");
+}
+
+const streakEl = document.getElementById("selectedHabitCurrentStreak");
+if (streakEl) {
+  streakEl.classList.remove("streak-pop");
+  void streakEl.offsetWidth;
+  streakEl.classList.add("streak-pop");
+}
+
+const panelPulseEl = document.getElementById("selectedHabitPanel");
+if (panelPulseEl) {
+  panelPulseEl.classList.remove("success-pulse");
+  void panelPulseEl.offsetWidth;
+  panelPulseEl.classList.add("success-pulse");
+}
+
+const successEl = document.querySelector(".habit-row.selected");
+if (successEl) {
+  successEl.classList.remove("success-glow");
+  void successEl.offsetWidth;
+  successEl.classList.add("success-glow");
+}
+
+}
+
 function renderHabitList() {
   const list = document.getElementById("habitList");
 list.innerHTML = "";
 
 const habits = getHabits();
+
+if (selectedHabitId && !habits.some(habit => String(habit.id) === String(selectedHabitId))) {
+  selectedHabitId = null;
+  localStorage.removeItem("selectedHabitId");
+}
 
 if (habits.length === 0) {
   list.innerHTML = `
@@ -3296,66 +4107,80 @@ if (habits.length === 0) {
   return;
 }
 
-  habits.forEach((habit, index) => {
-    const row = document.createElement("div");
-const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStreakClass } = getHabitCardData(habit);    row.draggable = editingHabitId !== habit.id;
+habits.forEach((habit, index) => {
+const row = document.createElement("div");
+const isSelected = String(selectedHabitId) === String(habit.id);
 
-    row.innerHTML = `
-      <div class="habit-left">
-        <span class="drag-handle">☰</span>
-        <div class="habit-text">
-          ${
-            editingHabitId === habit.id
-        ? `
-  <div class="edit-wrap">
-    <input
-      class="edit-input"
-      type="text"
-      value="${escapeHtml(editingHabitValue)}"
-      oninput="window.handleEditInput(this.value)"
-    />
-    <div class="edit-actions">
-      <button class="save-btn" onclick="window.saveHabitEdit(${index})">저장</button>
-      <button class="cancel-btn" onclick="window.cancelHabitEdit()">취소</button>
+const { done, todayDone, percent, streakLabel, streakClass, bestStreak, bestStreakClass } = getHabitCardData(habit);
+
+row.className = `habit-row ${isSelected ? "selected" : ""} ${todayDone ? "today-done" : ""}`.trim();
+row.onclick = null;
+row.draggable = editingHabitId !== habit.id;
+
+  row.innerHTML = `
+  <div class="habit-left">
+    <span class="drag-handle">☰</span>
+    <div class="habit-text">
+      ${
+        editingHabitId === habit.id
+          ? `
+            <div class="edit-wrap">
+              <input
+                class="edit-input"
+                type="text"
+                value="${escapeHtml(editingHabitValue)}"
+                oninput="window.handleEditInput(this.value)"
+              />
+              <div class="edit-actions">
+                <button class="save-btn" onclick="window.saveHabitEdit(${index})">저장</button>
+                <button class="cancel-btn" onclick="window.cancelHabitEdit()">취소</button>
+              </div>
+            </div>
+          `
+          : `
+<div class="habit-title-row">
+  <span class="habit-name">${escapeHtml(habit.name)}</span>
+</div>
+
+<div class="habit-streak-row">
+  <span class="${streakClass}">${escapeHtml(streakLabel)}</span>
+</div>
+
+<div class="habit-progress-bar">
+  <div class="habit-progress-fill" style="width:${percent}%"></div>
+</div>
+
+<div class="habit-meta">
+  <span class="habit-status toggle-status ${todayDone ? "done" : "pending"}">
+    ${todayDone ? "✓ 오늘 완료" : "○ 오늘 진행 전"}
+  </span>
+  <span>이번 달 ${done}/${daysInMonth}</span>
+  <span class="${bestStreakClass}">🏆 최고 ${bestStreak}일</span>
+  <span class="habit-progress-percent">${percent}%</span>
+</div>
+          `
+      }
     </div>
   </div>
-`
-              : `
-                <div class="habit-title-row">
-                <span class="habit-name">${escapeHtml(habit.name)}</span>
-                <span class="${streakClass}">${escapeHtml(streakLabel)}</span>          `
-          }
-          <div class="habit-progress-bar">
-            <div class="habit-progress-fill" style="width:${percent}%"></div>
-          </div>
-          <div class="habit-meta">
-            <span class="habit-status toggle-status">
-             ${todayDone ? "완료" : "미완료"}
-             </span>
-            <span>이번 달 ${done}/${daysInMonth}</span>
-            <span class="${bestStreakClass}">🏆 최고 ${bestStreak}일</span>
-            <span class="habit-progress-percent">${percent}%</span>
-          </div>
-        </div>
-      </div>
-<div class="habit-right">
-  ${
-    editingHabitId === habit.id
-      ? ``
-      : `
-        <div class="habit-actions-top">
-          <button class="move-btn" onclick="event.stopPropagation(); moveHabitUp(${index})">↑</button>
-          <button class="move-btn" onclick="event.stopPropagation(); moveHabitDown(${index})">↓</button>
-          <button class="edit-btn" onclick="event.stopPropagation(); window.editHabit(${index})">수정</button>
-        </div>
 
-       <div class="habit-actions-bottom">
-  <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${index})">✕</button>
-</div>
-      `
-  }
-</div>
-    `;
+  <div class="habit-right">
+    ${
+      editingHabitId === habit.id
+        ? ``
+        : `
+          <div class="habit-actions-top">
+            <button class="move-btn" onclick="event.stopPropagation(); moveHabitUp(${index})">↑</button>
+            <button class="move-btn" onclick="event.stopPropagation(); moveHabitDown(${index})">↓</button>
+            <button class="edit-btn" onclick="event.stopPropagation(); window.editHabit(${index})">수정</button>
+          </div>
+
+          <div class="habit-actions-bottom">
+            <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${index})">X</button>
+          </div>
+        `
+    }
+  </div>
+`;
 
     row.addEventListener("dragstart", () => {
   draggedIndex = index;
@@ -3389,29 +4214,56 @@ row.addEventListener("drop", (e) => {
   moveHabitByDrag(draggedIndex, index);
 });
 
- row.addEventListener("click", (e) => {
+row.addEventListener("touchstart", (e) => {
+  if (editingHabitId === habit.id) return;
+
   const target = e.target;
-
   if (
-    target.closest("button") ||
+    target.closest(".move-btn") ||
+    target.closest(".edit-btn") ||
+    target.closest(".delete-btn") ||
+    target.closest(".save-btn") ||
+    target.closest(".cancel-btn") ||
     target.closest(".edit-input")
-  ) return;
+  ) {
+    return;
+  }
 
-  const toggleTarget = target.closest(".toggle-status");
-  if (!toggleTarget) return;
+  touchMoved = false;
+  touchStartY = e.touches[0].clientY;
 
-  row.classList.add("click-pop");
+  if (touchHoldTimer) {
+    clearTimeout(touchHoldTimer);
+  }
 
-  setTimeout(() => {
-    row.classList.remove("click-pop");
-  }, 200);
+  touchHoldTimer = setTimeout(() => {
+    startTouchDrag(index, row);
+  }, 320);
+}, { passive: true });
 
-  setTimeout(() => {
-    toggleTodayFromCard(habit.id);
-  }, 120);
+row.addEventListener("touchmove", (e) => {
+  handleTouchMove(e);
+
+  if (!isTouchDragging && e.touches && e.touches.length) {
+    const currentY = e.touches[0].clientY;
+    if (Math.abs(currentY - touchStartY) > 18 && touchHoldTimer) {
+      clearTimeout(touchHoldTimer);
+      touchHoldTimer = null;
+    }
+  }
+}, { passive: false });
+
+row.addEventListener("touchend", () => {
+  handleTouchEnd(row, habit.id);
 });
+
+row.addEventListener("touchcancel", () => {
+  clearTouchDragState();
+});
+
     list.appendChild(row);
   });
+  renderSelectedHabitPanel();
 }
 
     function renderStats() {
