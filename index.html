@@ -397,14 +397,17 @@ h1 {
   position: fixed;
   left: 16px;
   right: 16px;
-  bottom: 18px;
-  z-index: 9998;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 99999;
   border: 1px solid rgba(201,164,76,0.28);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(23,20,17,0.98) 0%, rgba(13,12,11,0.98) 100%);
   box-shadow: 0 18px 40px rgba(0,0,0,0.35);
   padding: 14px;
   backdrop-filter: blur(8px);
+  display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
 .install-hint-text {
@@ -4946,6 +4949,9 @@ window.addEventListener("DOMContentLoaded", () => {
   if (isIosDevice() && !isStandaloneMode()) {
     setTimeout(() => {
       banner.classList.remove("hidden");
+      banner.style.display = "block";
+      banner.style.opacity = "1";
+      banner.style.visibility = "visible";
     }, 900);
   }
 });
@@ -4994,7 +5000,7 @@ if ("serviceWorker" in navigator) {
 
 <div id="installHintBanner" class="install-hint-banner hidden">
   <div class="install-hint-text">
-    아이폰에서는 <b>공유</b> → <b>홈 화면에 추가</b>로 설치할 수 있어
+    아이폰은 <b>Safari에서 열기</b> 후<br><b>공유</b> → <b>홈 화면에 추가</b>로 설치할 수 있어
   </div>
   <div class="install-hint-actions">
     <button type="button" class="install-hint-btn" onclick="openIosInstallGuideFromBanner()">설치 방법 보기</button>
