@@ -3,8 +3,8 @@
 <head>
   <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="습관">
@@ -98,17 +98,18 @@
       --radius-sm: 12px;
     }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background:
-        radial-gradient(circle at top left, rgba(201,164,76,0.08), transparent 22%),
-        radial-gradient(circle at top right, rgba(141,106,42,0.06), transparent 20%),
-        linear-gradient(180deg, #050505 0%, #090909 100%);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-    }
+   html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(201,164,76,0.08), transparent 22%),
+    radial-gradient(circle at top right, rgba(141,106,42,0.06), transparent 20%),
+    linear-gradient(180deg, #050505 0%, #090909 100%);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
 
     body {
       padding: 18px;
@@ -569,6 +570,22 @@ h1 {
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+
+.edit-input {
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #0a0a0a 0%, #11100f 100%);
+  color: var(--text);
+  padding: 0 14px;
+  font-size: 16px;
+  outline: none;
+}
+
+.edit-input:focus {
+  border-color: rgba(201,164,76,0.6);
+}
 
     .habit-input::placeholder {
       color: #6f665a;
@@ -1195,9 +1212,27 @@ h1 {
 
 @media (min-width: 900px) {
   .container {
-    max-width: 720px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 20px;
+  }
+
+  .top-grid {
+    grid-template-columns: 1.2fr 0.95fr;
+    gap: 18px;
+  }
+
+  .main-grid {
+    grid-template-columns: 1.25fr 0.95fr;
+    gap: 18px;
+  }
+
+  .input-row {
+    align-items: stretch;
+  }
+
+  .add-btn {
+    min-width: 120px;
   }
 }
 
@@ -1880,7 +1915,21 @@ h1 {
 
 .habit-input {
   height: 42px;
-  font-size: 15px;
+  font-size: 16px;
+  padding: 0 14px;
+  border-radius: 14px;
+}
+
+.edit-input {
+  height: 42px;
+  font-size: 16px;
+  padding: 0 14px;
+  border-radius: 14px;
+}
+
+.habit-input {
+  height: 42px;
+  font-size: 16px;
   padding: 0 14px;
   border-radius: 14px;
 }
@@ -1985,7 +2034,7 @@ h1 {
   }
     .habit-input {
     height: 40px;
-    font-size: 14px;
+    font-size: 16px;
     padding: 0 12px;
   }
 
@@ -2393,15 +2442,15 @@ h1 {
           <button id="addHabitBtn" class="add-btn" onclick="addHabit()">습관 추가</button>        </div>
 
         <div class="bulk-actions" style="display: grid; grid-template-columns: 1fr 1fr;">
-          <button class="bulk-btn" onclick="setTodayAll(true)">오늘 전체 완료</button>
-          <button class="bulk-btn" onclick="setTodayAll(false)">오늘 전체 해제</button>
-          <button class="bulk-btn" onclick="setMonthAll(true)">이번 달 전체 완료</button>
-          <button class="bulk-btn" onclick="setMonthAll(false)">이번 달 전체 해제</button>
+         <button class="bulk-btn" onclick="setTodayAll(true)">오늘 전체 완료</button>
+         <button class="bulk-btn" onclick="setTodayAll(false)">오늘 전체 해제</button>
+         <button class="bulk-btn" onclick="setMonthAll(true)">이번 달 전체 완료</button>
+         <button class="bulk-btn" onclick="setMonthAll(false)">이번 달 전체 해제</button>
         </div>
 
         <div class="bulk-actions" style="display: grid; grid-template-columns: 1fr 1fr; margin-top: -4px;">
-          <button class="bulk-btn" onclick="exportBackup()">백업 내보내기</button>
-          <button class="bulk-btn" onclick="importBackup()">백업 불러오기</button>
+         <button class="bulk-btn" onclick="exportBackup()">백업 내보내기</button>
+         <button class="bulk-btn" onclick="importBackup()">백업 불러오기</button>
         </div>
 
         <div class="hint">
