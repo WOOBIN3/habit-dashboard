@@ -389,6 +389,58 @@ h1 {
   backdrop-filter: blur(6px);
 }
 
+.install-hint-banner.hidden {
+  display: none !important;
+}
+
+.install-hint-banner {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 18px;
+  z-index: 9998;
+  border: 1px solid rgba(201,164,76,0.28);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(23,20,17,0.98) 0%, rgba(13,12,11,0.98) 100%);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+  padding: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.install-hint-text {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.install-hint-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.install-hint-btn,
+.install-hint-close {
+  flex: 1;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.install-hint-btn {
+  border: 1px solid #8d6a2a;
+  background: linear-gradient(180deg, var(--accent-strong) 0%, var(--accent) 52%, #a77c31 100%);
+  color: #16120b;
+}
+
+.install-hint-close {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
 .ios-install-card {
   width: min(92vw, 360px);
   border: 1px solid var(--line);
@@ -2780,6 +2832,22 @@ function triggerHeroCompleteFlash() {
      updateNetworkStatus();
 }
 
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function isStandaloneMode() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function closeIosInstallGuide() {
+  const guide = document.getElementById("iosInstallGuide");
+  if (!guide) return;
+  guide.classList.add("hidden");
+}
+
+window.closeIosInstallGuide = closeIosInstallGuide;
+
 function setupInstallButton() {
   const installBtn = document.getElementById("installBtn");
   if (!installBtn) return;
@@ -2817,22 +2885,6 @@ function setupInstallButton() {
     installBtn.classList.add("hidden");
   });
 }
-
-function isIosDevice() {
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-}
-
-function isStandaloneMode() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-}
-
-function closeIosInstallGuide() {
-  const guide = document.getElementById("iosInstallGuide");
-  if (!guide) return;
-  guide.classList.add("hidden");
-}
-
-window.closeIosInstallGuide = closeIosInstallGuide;
 
 async function getCurrentUser() {
   try {
@@ -4928,11 +4980,21 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-  </script>
+</script>
 
-    <div id="toast" class="toast hidden"></div>
+<div id="installHintBanner" class="install-hint-banner hidden">
+  <div class="install-hint-text">
+    아이폰에서는 <b>공유</b> → <b>홈 화면에 추가</b>로 설치할 수 있어
+  </div>
+  <div class="install-hint-actions">
+    <button type="button" class="install-hint-btn" onclick="openIosInstallGuideFromBanner()">설치 방법 보기</button>
+    <button type="button" class="install-hint-close" onclick="closeInstallHintBanner()">닫기</button>
+  </div>
+</div>
 
-    <div id="iosInstallGuide" class="ios-install-guide hidden">
+<div id="toast" class="toast hidden"></div>
+
+<div id="iosInstallGuide" class="ios-install-guide hidden">
   <div class="ios-install-card">
     <div class="ios-install-title">아이폰 설치 방법</div>
     <div class="ios-install-text">
@@ -4942,5 +5004,6 @@ if ("serviceWorker" in navigator) {
     <button type="button" class="ios-install-close" onclick="closeIosInstallGuide()">닫기</button>
   </div>
 </div>
+
 </body>
 </html>
