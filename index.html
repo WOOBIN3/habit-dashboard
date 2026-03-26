@@ -4198,9 +4198,9 @@ row.draggable = editingHabitId !== habit.id;
                 oninput="window.handleEditInput(this.value)"
               />
               <div class="edit-actions">
-                <button class="save-btn" onclick="window.saveHabitEdit(${index})">저장</button>
-                <button class="cancel-btn" onclick="window.cancelHabitEdit()">취소</button>
-              </div>
+  <button type="button" class="save-btn" onclick="event.stopPropagation(); window.saveHabitEdit(${index})">저장</button>
+  <button type="button" class="cancel-btn" onclick="event.stopPropagation(); window.cancelHabitEdit()">취소</button>
+</div>
             </div>
           `
           : `
@@ -4235,10 +4235,10 @@ row.draggable = editingHabitId !== habit.id;
         ? ``
         : `
           <div class="habit-actions-top">
-            <button class="move-btn" onclick="event.stopPropagation(); moveHabitUp(${index})">↑</button>
-            <button class="move-btn" onclick="event.stopPropagation(); moveHabitDown(${index})">↓</button>
-            <button class="edit-btn" onclick="event.stopPropagation(); window.editHabit(${index})">수정</button>
-          </div>
+  <button type="button" class="move-btn" onclick="window.handleMoveUp(event, ${index})">↑</button>
+  <button type="button" class="move-btn" onclick="window.handleMoveDown(event, ${index})">↓</button>
+  <button type="button" class="edit-btn" onclick="window.handleEditClick(event, ${index})">수정</button>
+</div>
 
           <div class="habit-actions-bottom">
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${index})">X</button>
