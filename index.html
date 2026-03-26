@@ -4924,19 +4924,29 @@ async function initApp() {
 
 initApp();
 
+window.closeInstallHintBanner = closeInstallHintBanner;
+window.openIosInstallGuideFromBanner = openIosInstallGuideFromBanner;
+
+localStorage.removeItem("habitDashboardInstallHintDismissedAt");
+
 window.addEventListener("DOMContentLoaded", () => {
   const installBtn = document.getElementById("installBtn");
+  const banner = document.getElementById("installHintBanner");
 
-  if (!installBtn) return;
-
-  if (isStandaloneMode()) {
-    installBtn.classList.add("hidden");
-    return;
+  if (installBtn) {
+    if (isStandaloneMode()) {
+      installBtn.classList.add("hidden");
+    } else if (isIosDevice()) {
+      installBtn.classList.remove("hidden");
+    }
   }
 
-  if (isIosDevice()) {
-    installBtn.classList.remove("hidden");
-    return;
+  if (!banner) return;
+
+  if (isIosDevice() && !isStandaloneMode()) {
+    setTimeout(() => {
+      banner.classList.remove("hidden");
+    }, 900);
   }
 });
 
