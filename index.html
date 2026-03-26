@@ -3336,6 +3336,21 @@ window.cancelHabitEdit = function () {
   renderHabitList();
 };
 
+window.handleMoveUp = function (event, index) {
+  event.stopPropagation();
+  moveHabitUp(index);
+};
+
+window.handleMoveDown = function (event, index) {
+  event.stopPropagation();
+  moveHabitDown(index);
+};
+
+window.handleEditClick = function (event, index) {
+  event.stopPropagation();
+  window.editHabit(index);
+};
+
 window.saveHabitEdit = async function (index) {
   if (!navigator.onLine) {
     showToast("오프라인 상태에서는 습관을 수정할 수 없어.", "error");
@@ -3809,10 +3824,23 @@ function handleTouchMove(e) {
   touchCurrentTargetIndex = targetIndex;
 }
 
-function handleTouchEnd(row, habitId) {
+function handleTouchEnd(e, row, habitId) {
   if (touchHoldTimer) {
     clearTimeout(touchHoldTimer);
     touchHoldTimer = null;
+  }
+
+  const target = e.target;
+  if (
+    target.closest(".move-btn") ||
+    target.closest(".edit-btn") ||
+    target.closest(".delete-btn") ||
+    target.closest(".save-btn") ||
+    target.closest(".cancel-btn") ||
+    target.closest(".edit-input")
+  ) {
+    clearTouchDragState();
+    return;
   }
 
   if (isTouchDragging) {
@@ -4319,10 +4347,9 @@ row.addEventListener("touchmove", (e) => {
   }
 }, { passive: false });
 
-row.addEventListener("touchend", () => {
-  handleTouchEnd(row, habit.id);
+row.addEventListener("touchend", (e) => {
+  handleTouchEnd(e, row, habit.id);
 });
-
 row.addEventListener("touchcancel", () => {
   clearTouchDragState();
 });
