@@ -35,6 +35,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
 
   if (request.method !== "GET") return;
+  if (!request.url.startsWith("http")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
@@ -56,9 +57,15 @@ self.addEventListener("fetch", (event) => {
       return (
         cachedResponse ||
         fetch(request).then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200) {
+            return networkResponse;
+          }
+
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
+            if (request.url.startsWith("http")) {
+              cache.put(request, responseClone);
+            }
           });
           return networkResponse;
         })
