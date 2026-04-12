@@ -12641,13 +12641,13 @@ function updateTopDashboardStats(source) {
       if (!user) return;
       const dateStr = `${monthKey}-${String(dayIdx+1).padStart(2,"0")}`;
       if (next) {
-        await window.supabaseClient.from("habit_logs").upsert(
-          { habit_id: habitId, user_id: user.id, date: dateStr, done: true },
-          { onConflict: "habit_id,date" }
+        await window.supabaseClient.from("habit_checks").upsert(
+          { habit_id: habitId, user_id: user.id, check_date: dateStr, checked: true },
+          { onConflict: "user_id,habit_id,check_date" }
         );
       } else {
-        await window.supabaseClient.from("habit_logs")
-          .delete().eq("habit_id", habitId).eq("date", dateStr).eq("user_id", user.id);
+        await window.supabaseClient.from("habit_checks")
+          .delete().eq("habit_id", habitId).eq("check_date", dateStr).eq("user_id", user.id);
       }
     } catch(e) { console.error("체크 저장 실패", e); }
   };
@@ -13028,7 +13028,7 @@ function updateTopDashboardStats(source) {
     try {
       const user = window.currentUser;
       if (!user) return;
-      await window.supabaseClient.from("habit_logs").delete().eq("user_id", user.id);
+      await window.supabaseClient.from("habit_checks").delete().eq("user_id", user.id);
       window.appState.monthData = {};
       renderMobileHome();
       renderMobileStats();
