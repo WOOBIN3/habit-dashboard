@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(awk -F: '$1 >= 9748 && $1 <= 9780 {print}')",
+      "Read(//c/Users/hauri/**)",
+      "Bash(node:*)",
+      "Bash(python3 -c \"import tkinter; print\\('tkinter ok'\\)\")",
+      "Bash(python3 -c \"import struct,zlib; print\\('stdlib ok'\\)\")",
+      "Bash(python3 -c ':*)",
+      "Bash(python3 -c \"import turtle; print\\('turtle'\\)\")",
+      "Bash(python3:*)",
+      "Bash(powershell:*)",
+      "Bash(ls C:/dev/habit-dashboard/*.json)",
+      "Bash(ls -la C:/dev/habit-dashboard/flame-icon*.png)",
+      "Bash(git add:*)"
+    ]
+  }
+}

@@ -10210,6 +10210,354 @@ html, body {
 
 /* ═══════════════════════════════════════════════ */
 
+/* ═══════════ MOBILE UI v2 ═══════════ */
+@media (max-width: 768px) {
+  /* ─ Hide PC layout ─ */
+  #appScreen > .v2-bar,
+  #appScreen > .v2-main { display: none !important; }
+
+  /* ─ Shell ─ */
+  .mb-shell {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed; inset: 0;
+    width: 100%; height: 100vh; height: 100dvh;
+    background: #0B1220;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  /* ─ Header ─ */
+  .mb-header {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    background: rgba(11,18,32,0.96);
+    border-bottom: 1px solid rgba(245,185,66,0.09);
+  }
+  .mb-header-left { display: flex; align-items: center; gap: 10px; }
+  .mb-logo { width: 28px; height: 28px; border-radius: 8px; object-fit: cover; }
+  .mb-greeting-text { font-size: 14px; font-weight: 700; color: #c8d5f5; line-height: 1.2; }
+  .mb-greeting-date { font-size: 10px; color: rgba(160,175,210,0.55); margin-top: 1px; }
+  .mb-streak-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(245,185,66,0.11);
+    border: 1px solid rgba(245,185,66,0.26);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; font-weight: 700; color: #F5B942;
+  }
+
+  /* ─ Panes ─ */
+  .mb-panes {
+    flex: 1 1 0; min-height: 0;
+    position: relative; overflow: hidden;
+  }
+  .mb-pane {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 18px 16px 20px;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0; transform: translateX(24px);
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+  .mb-pane.active {
+    opacity: 1; transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* ─ Section title ─ */
+  .mb-section-title {
+    font-size: 10px; font-weight: 700;
+    color: rgba(200,215,245,0.40);
+    text-transform: uppercase; letter-spacing: 1.3px;
+    margin: 20px 0 8px;
+  }
+  .mb-section-title:first-child { margin-top: 0; }
+
+  /* ══ HOME TAB ══ */
+  .mb-donut-wrap {
+    position: relative;
+    width: 188px; height: 188px;
+    margin: 0 auto 20px;
+  }
+  .mb-donut-svg {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 0 18px rgba(245,185,66,0.30));
+  }
+  .mb-donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .mb-donut-pct { font-size: 34px; font-weight: 900; color: #F5B942; line-height: 1; }
+  .mb-donut-lbl { font-size: 11px; color: rgba(160,175,210,0.60); margin-top: 5px; }
+
+  /* Today habit list */
+  .mb-today-list { display: flex; flex-direction: column; gap: 9px; }
+  .mb-today-item {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 0 16px; min-height: 56px;
+    cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .mb-today-item.mb-done {
+    background: rgba(245,185,66,0.06);
+    border-color: rgba(245,185,66,0.20);
+  }
+  .mb-today-check {
+    width: 26px; height: 26px; flex: 0 0 26px;
+    border-radius: 9px; border: 2px solid rgba(200,175,100,0.30);
+    background: rgba(8,14,26,0.70);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+  }
+  .mb-today-item.mb-done .mb-today-check {
+    background: linear-gradient(135deg,#f5e07a,#d4a52a);
+    border-color: transparent;
+    box-shadow: 0 0 12px rgba(240,185,50,0.55), 0 0 22px rgba(240,185,50,0.20);
+  }
+  .mb-today-checkmark { font-size: 14px; display: none; }
+  .mb-today-item.mb-done .mb-today-checkmark { display: block; }
+  .mb-today-emoji { font-size: 20px; }
+  .mb-today-name {
+    flex: 1; font-size: 14px; font-weight: 600; color: #c8d5f5;
+  }
+  .mb-today-item.mb-done .mb-today-name {
+    color: rgba(200,215,245,0.45); text-decoration: line-through;
+  }
+  .mb-today-empty {
+    text-align: center; padding: 32px 0;
+    font-size: 13px; color: rgba(160,175,210,0.35);
+  }
+
+  /* ══ HABITS TAB ══ */
+  .mb-habits-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .mb-habits-title { font-size: 17px; font-weight: 800; color: #c8d5f5; }
+  .mb-add-fab {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(245,185,66,0.14);
+    border: 1px solid rgba(245,185,66,0.45);
+    color: #F5B942; font-size: 22px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .mb-add-fab.open { transform: rotate(45deg); }
+
+  /* Slide-in add row */
+  .mb-add-row {
+    display: flex; gap: 8px; align-items: center;
+    overflow: hidden; max-height: 0; opacity: 0;
+    transition: max-height 0.26s ease, opacity 0.2s, margin-bottom 0.26s;
+    margin-bottom: 0;
+  }
+  .mb-add-row.open { max-height: 60px; opacity: 1; margin-bottom: 14px; }
+  .mb-habit-input {
+    flex: 1; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.13); border-radius: 12px;
+    padding: 11px 14px; color: #c8d5f5; font-size: 14px;
+    outline: none; -webkit-appearance: none;
+  }
+  .mb-habit-input::placeholder { color: rgba(160,175,210,0.35); }
+  .mb-habit-input:focus { border-color: rgba(245,185,66,0.42); }
+  .mb-confirm-btn {
+    background: rgba(245,185,66,0.16);
+    border: 1px solid rgba(245,185,66,0.48);
+    border-radius: 12px; color: #F5B942;
+    font-size: 14px; font-weight: 700;
+    padding: 11px 16px; cursor: pointer; white-space: nowrap;
+  }
+
+  /* Habit cards */
+  .mb-habit-cards { display: flex; flex-direction: column; gap: 10px; }
+  .mb-habit-card {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 14px 16px;
+    cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .mb-habit-card.mb-pressing {
+    background: rgba(245,185,66,0.07);
+    border-color: rgba(245,185,66,0.22);
+  }
+  .mb-drag-handle {
+    color: rgba(160,175,210,0.25); font-size: 18px;
+    flex: 0 0 14px; cursor: grab; touch-action: none;
+    line-height: 1;
+  }
+  .mb-card-emoji { font-size: 24px; flex: 0 0 auto; }
+  .mb-card-info { flex: 1; min-width: 0; }
+  .mb-card-name {
+    font-size: 14px; font-weight: 700; color: #c8d5f5;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mb-card-meta { font-size: 11px; color: rgba(160,175,210,0.45); margin-top: 2px; }
+  .mb-card-pct { font-size: 17px; font-weight: 800; color: #F5B942; flex: 0 0 auto; }
+  .mb-habits-empty {
+    text-align: center; padding: 40px 0;
+    font-size: 13px; color: rgba(160,175,210,0.35);
+  }
+
+  /* Long-press context menu */
+  .mb-ctx-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.45);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.18s;
+  }
+  .mb-ctx-overlay.open { opacity: 1; pointer-events: auto; }
+  .mb-ctx-menu {
+    position: fixed; z-index: 1000;
+    background: rgba(16,24,42,0.98);
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+    min-width: 170px;
+    opacity: 0; transform: scale(0.92);
+    pointer-events: none;
+    transition: opacity 0.18s, transform 0.18s;
+    transform-origin: top center;
+  }
+  .mb-ctx-menu.open { opacity: 1; transform: scale(1); pointer-events: auto; }
+  .mb-ctx-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; font-size: 14px; color: #c8d5f5;
+    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.12s;
+  }
+  .mb-ctx-item:last-child { border-bottom: none; }
+  .mb-ctx-item:active { background: rgba(255,255,255,0.06); }
+  .mb-ctx-item.ctx-danger { color: rgba(248,113,113,0.90); }
+
+  /* ══ STATS TAB ══ */
+  .mb-stats-subtabs {
+    display: flex; gap: 6px; margin-bottom: 16px;
+  }
+  .mb-subtab {
+    flex: 1; padding: 8px 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: rgba(160,175,210,0.50);
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; text-align: center;
+    transition: all 0.16s;
+  }
+  .mb-subtab.active {
+    background: rgba(245,185,66,0.12);
+    border-color: rgba(245,185,66,0.38);
+    color: #F5B942;
+  }
+  .mb-chart-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 12px;
+    height: 185px; position: relative;
+    margin-bottom: 12px;
+  }
+  .mb-chart-card canvas { width: 100% !important; height: 100% !important; }
+  .mb-chart-label {
+    font-size: 11px; font-weight: 700;
+    color: rgba(200,215,245,0.50); margin-bottom: 8px;
+  }
+  .mb-stat-bars { display: flex; flex-direction: column; gap: 11px; }
+  .mb-stat-bar-row { }
+  .mb-stat-bar-top {
+    display: flex; justify-content: space-between; margin-bottom: 5px;
+  }
+  .mb-stat-bar-name { font-size: 12px; font-weight: 600; color: #c8d5f5; }
+  .mb-stat-bar-pct { font-size: 12px; font-weight: 700; color: #F5B942; }
+  .mb-stat-bar-bg { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+  .mb-stat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  /* ══ SETTINGS TAB ══ */
+  .mb-settings-group {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; overflow: hidden;
+  }
+  .mb-settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 18px; min-height: 54px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .mb-settings-row:last-child { border-bottom: none; }
+  .mb-settings-lbl { font-size: 14px; color: rgba(160,175,210,0.78); }
+  .mb-settings-val {
+    font-size: 13px; color: #c8d5f5; font-weight: 600;
+    max-width: 58%; text-align: right;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mb-logout-btn {
+    display: block; width: 100%; padding: 15px;
+    background: rgba(248,113,113,0.09);
+    border: 1px solid rgba(248,113,113,0.28);
+    border-radius: 16px;
+    color: rgba(248,113,113,0.88);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: background 0.15s; margin-bottom: 10px;
+  }
+  .mb-logout-btn:active { background: rgba(248,113,113,0.17); }
+  .mb-reset-btn {
+    display: block; width: 100%; padding: 15px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    color: rgba(160,175,210,0.50);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .mb-reset-btn:active { background: rgba(255,255,255,0.07); }
+
+  /* ── Bottom Tab Bar ── */
+  .mb-tabbar {
+    flex: 0 0 auto; display: flex;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    background: rgba(7,12,22,0.97);
+    backdrop-filter: blur(22px) saturate(130%);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mb-tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; padding: 10px 4px;
+    background: none; border: none;
+    color: rgba(120,138,175,0.48);
+    cursor: pointer; position: relative;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.18s;
+  }
+  .mb-tab::before {
+    content: ''; position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 2px;
+    background: linear-gradient(90deg,#f5e07a,#e08820);
+    border-radius: 0 0 2px 2px;
+    transition: width 0.2s ease;
+  }
+  .mb-tab.active { color: #F5B942; }
+  .mb-tab.active::before { width: 30px; }
+  .mb-tab-icon { font-size: 21px; line-height: 1; }
+  .mb-tab-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.4px; }
+}
+
+/* Desktop: hide mobile elements */
+.mb-shell { display: none; }
+.mb-ctx-overlay { display: none; }
+.mb-ctx-menu { display: none; }
+
 </style>
 </head>
 <body>
@@ -10331,6 +10679,142 @@ html, body {
       </div>
     </div>
 
+  </div>
+
+  <!-- ══════════ MOBILE SHELL v2 ══════════ -->
+  <div class="mb-shell" id="mbShell">
+
+    <!-- Header -->
+    <div class="mb-header">
+      <div class="mb-header-left">
+        <img id="mbLogoImg" class="mb-logo" alt="">
+        <div>
+          <div class="mb-greeting-text" id="mbGreeting">안녕하세요 👋</div>
+          <div class="mb-greeting-date" id="mbGreetDate"></div>
+        </div>
+      </div>
+      <div class="mb-streak-badge" id="mbStreakBadge">🔥 0일 연속</div>
+    </div>
+
+    <!-- Panes -->
+    <div class="mb-panes">
+
+      <!-- HOME -->
+      <div class="mb-pane active" id="mbPaneHome">
+        <div class="mb-donut-wrap">
+          <svg class="mb-donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" fill="none"
+              stroke="rgba(255,255,255,0.05)" stroke-width="11"/>
+            <circle id="mbDonutArc" cx="50" cy="50" r="38" fill="none"
+              stroke="url(#mbGrad)" stroke-width="11"
+              stroke-linecap="round"
+              stroke-dasharray="238.76" stroke-dashoffset="238.76"
+              transform="rotate(-90 50 50)"/>
+            <defs>
+              <linearGradient id="mbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f5e07a"/>
+                <stop offset="100%" stop-color="#d4890a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="mb-donut-center">
+            <div class="mb-donut-pct" id="mbDonutPct">0%</div>
+            <div class="mb-donut-lbl">오늘 달성률</div>
+          </div>
+        </div>
+
+        <div class="mb-section-title">오늘의 습관</div>
+        <div class="mb-today-list" id="mbTodayList"></div>
+      </div>
+
+      <!-- HABITS -->
+      <div class="mb-pane" id="mbPaneHabits">
+        <div class="mb-habits-header">
+          <span class="mb-habits-title">내 습관</span>
+          <button class="mb-add-fab" id="mbAddFab" type="button"
+            onclick="mbToggleAddRow()">＋</button>
+        </div>
+        <div class="mb-add-row" id="mbAddRow">
+          <input id="mbHabitInput" class="mb-habit-input" type="text"
+            placeholder="새 습관 이름 입력..."
+            onkeydown="if(event.key==='Enter') window.addHabitMobile()">
+          <button class="mb-confirm-btn" type="button"
+            onclick="window.addHabitMobile()">추가</button>
+        </div>
+        <div class="mb-habit-cards" id="mbHabitCards"></div>
+      </div>
+
+      <!-- STATS -->
+      <div class="mb-pane" id="mbPaneStats">
+        <div class="mb-stats-subtabs">
+          <button class="mb-subtab active" id="mbSubDay" type="button"
+            onclick="mbSwitchSub('day')">일간</button>
+          <button class="mb-subtab" id="mbSubWeek" type="button"
+            onclick="mbSwitchSub('week')">주간</button>
+          <button class="mb-subtab" id="mbSubMonth" type="button"
+            onclick="mbSwitchSub('month')">월간</button>
+        </div>
+        <div class="mb-chart-label" id="mbLineLabel">일별 달성률 (이번 달)</div>
+        <div class="mb-chart-card"><canvas id="mbLineChart"></canvas></div>
+        <div class="mb-chart-label" id="mbBarLabel">주차별 달성률</div>
+        <div class="mb-chart-card"><canvas id="mbBarChart"></canvas></div>
+        <div class="mb-section-title">습관별 달성률</div>
+        <div class="mb-stat-bars" id="mbStatBars"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="mb-pane" id="mbPaneSettings">
+        <div class="mb-section-title">계정</div>
+        <div class="mb-settings-group">
+          <div class="mb-settings-row">
+            <span class="mb-settings-lbl">이메일</span>
+            <span class="mb-settings-val" id="mbSetEmail">-</span>
+          </div>
+          <div class="mb-settings-row">
+            <span class="mb-settings-lbl">총 습관 수</span>
+            <span class="mb-settings-val" id="mbSetCount">0개</span>
+          </div>
+        </div>
+        <div class="mb-section-title">앱 정보</div>
+        <div class="mb-settings-group">
+          <div class="mb-settings-row">
+            <span class="mb-settings-lbl">버전</span>
+            <span class="mb-settings-val">1.0.0</span>
+          </div>
+        </div>
+        <div class="mb-section-title">계정 관리</div>
+        <button class="mb-logout-btn" type="button"
+          onclick="window.handleLogout && window.handleLogout()">로그아웃</button>
+        <button class="mb-reset-btn" type="button"
+          onclick="mbConfirmReset()">데이터 초기화</button>
+      </div>
+
+    </div><!-- /panes -->
+
+    <!-- Tab Bar -->
+    <nav class="mb-tabbar">
+      <button class="mb-tab active" id="mbTabHome" type="button" onclick="mbSwitchTab('home')">
+        <span class="mb-tab-icon">🏠</span><span class="mb-tab-lbl">홈</span>
+      </button>
+      <button class="mb-tab" id="mbTabHabits" type="button" onclick="mbSwitchTab('habits')">
+        <span class="mb-tab-icon">📋</span><span class="mb-tab-lbl">습관</span>
+      </button>
+      <button class="mb-tab" id="mbTabStats" type="button" onclick="mbSwitchTab('stats')">
+        <span class="mb-tab-icon">📊</span><span class="mb-tab-lbl">통계</span>
+      </button>
+      <button class="mb-tab" id="mbTabSettings" type="button" onclick="mbSwitchTab('settings')">
+        <span class="mb-tab-icon">⚙️</span><span class="mb-tab-lbl">설정</span>
+      </button>
+    </nav>
+
+  </div><!-- /mb-shell -->
+
+  <!-- Context menu (global) -->
+  <div class="mb-ctx-overlay" id="mbCtxOverlay" onclick="mbCloseCtx()"></div>
+  <div class="mb-ctx-menu" id="mbCtxMenu">
+    <div class="mb-ctx-item" onclick="mbCtxAction('up')">↑ 위로 이동</div>
+    <div class="mb-ctx-item" onclick="mbCtxAction('down')">↓ 아래로 이동</div>
+    <div class="mb-ctx-item ctx-danger" onclick="mbCtxAction('delete')">🗑 삭제</div>
   </div>
 
   </div>
@@ -12008,6 +12492,568 @@ function updateTopDashboardStats(source) {
       totalCountEl.textContent = String(total);
     }
   }
+
+  updateTopDashboardStats();
+
+  /* ════════════════════════════════════════════
+     MOBILE UI v2
+  ════════════════════════════════════════════ */
+
+  let mbCurrentTab = "home";
+  let mbCurrentSub = "day";
+  let mbLineChartInst = null;
+  let mbBarChartInst  = null;
+  let mbCtxHabitId    = null;
+  const MB_COLORS = ["#63b3ed","#68d391","#f6e05e","#f6ad55","#fc8181","#b794f4","#76e4f7","#fbb6ce","#90cdf4","#9ae6b4"];
+
+  /* ── helpers ── */
+  function mbMonthKey(d) {
+    d = d || new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  }
+  function mbTodayIdx() { return new Date().getDate() - 1; }
+  function mbEmoji(name) {
+    return typeof getHabitEmoji === "function" ? getHabitEmoji(name) : "✅";
+  }
+  function mbDaysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+
+  /* ── compute streak (consecutive days all habits done) ── */
+  function mbComputeStreak() {
+    const habits = window.appState?.habits || [];
+    if (!habits.length) return 0;
+    const now = new Date();
+    const todayIdx = mbTodayIdx();
+    const monthKey = mbMonthKey();
+    let streak = 0;
+    for (let di = todayIdx; di >= 0; di--) {
+      const allDone = habits.every(h => {
+        const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+        return !!checks[di];
+      });
+      if (allDone) streak++;
+      else break;
+    }
+    return streak;
+  }
+
+  /* ── Tab switching ── */
+  window.mbSwitchTab = function(tab) {
+    mbCurrentTab = tab;
+    ["home","habits","stats","settings"].forEach(t => {
+      const cap = t.charAt(0).toUpperCase() + t.slice(1);
+      const pane = document.getElementById("mbPane" + cap);
+      const btn  = document.getElementById("mbTab" + cap);
+      if (pane) pane.classList.toggle("active", t === tab);
+      if (btn)  btn.classList.toggle("active",  t === tab);
+    });
+    if (tab === "home")     renderMobileHome();
+    if (tab === "habits")   renderMobileHabits();
+    if (tab === "stats")    setTimeout(renderMobileStats, 80);
+    if (tab === "settings") renderMobileSettings();
+  };
+
+  /* ── HOME ── */
+  function renderMobileHome() {
+    const habits = window.appState?.habits || [];
+    const now = new Date();
+    const monthKey = mbMonthKey();
+    const todayIdx = mbTodayIdx();
+    const days = ["일","월","화","수","목","금","토"];
+
+    // Header greeting + date
+    const greetEl = document.getElementById("mbGreeting");
+    const dateEl  = document.getElementById("mbGreetDate");
+    if (greetEl) greetEl.textContent = "안녕하세요 👋";
+    if (dateEl)  dateEl.textContent  = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+
+    // Streak badge
+    const streak = mbComputeStreak();
+    const badgeEl = document.getElementById("mbStreakBadge");
+    if (badgeEl) badgeEl.textContent = `🔥 ${streak}일 연속`;
+
+    // Donut
+    let done = 0;
+    const total = habits.length;
+    habits.forEach(h => {
+      const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+      if (checks[todayIdx]) done++;
+    });
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const arc = document.getElementById("mbDonutArc");
+    if (arc) {
+      const circ = 2 * Math.PI * 38;
+      arc.style.transition = "stroke-dashoffset 0.6s ease";
+      arc.setAttribute("stroke-dashoffset", String(circ * (1 - pct / 100)));
+    }
+    const pctEl = document.getElementById("mbDonutPct");
+    if (pctEl) pctEl.textContent = pct + "%";
+
+    // Today habit checklist
+    const listEl = document.getElementById("mbTodayList");
+    if (!listEl) return;
+    if (!habits.length) {
+      listEl.innerHTML = '<div class="mb-today-empty">습관 탭에서 습관을 추가해보세요</div>';
+      return;
+    }
+    listEl.innerHTML = habits.map((h, i) => {
+      const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+      const isDone = !!checks[todayIdx];
+      const emoji  = mbEmoji(h.name);
+      return `<div class="mb-today-item${isDone?" mb-done":""}"
+        onclick="mbTodayToggle('${h.id}','${monthKey}',${todayIdx},this)">
+        <div class="mb-today-check">
+          <span class="mb-today-checkmark">✓</span>
+        </div>
+        <span class="mb-today-emoji">${emoji}</span>
+        <span class="mb-today-name">${h.name || "습관"}</span>
+      </div>`;
+    }).join("");
+  }
+
+  /* Toggle from home tab */
+  window.mbTodayToggle = async function(habitId, monthKey, dayIdx, itemEl) {
+    if (!window.appState) window.appState = {};
+    if (!window.appState.monthData) window.appState.monthData = {};
+    if (!window.appState.monthData[monthKey]) window.appState.monthData[monthKey] = {};
+    if (!window.appState.monthData[monthKey][habitId]) window.appState.monthData[monthKey][habitId] = [];
+    const next = !window.appState.monthData[monthKey][habitId][dayIdx];
+    window.appState.monthData[monthKey][habitId][dayIdx] = next;
+    itemEl.classList.toggle("mb-done", next);
+    // Update donut
+    const habits = window.appState?.habits || [];
+    let done = 0;
+    habits.forEach(h => {
+      const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+      if (checks[dayIdx]) done++;
+    });
+    const pct = habits.length ? Math.round((done / habits.length) * 100) : 0;
+    const arc = document.getElementById("mbDonutArc");
+    const pctEl = document.getElementById("mbDonutPct");
+    if (arc) arc.setAttribute("stroke-dashoffset", String(2 * Math.PI * 38 * (1 - pct / 100)));
+    if (pctEl) pctEl.textContent = pct + "%";
+    // Streak
+    const streak = mbComputeStreak();
+    const badgeEl = document.getElementById("mbStreakBadge");
+    if (badgeEl) badgeEl.textContent = `🔥 ${streak}일 연속`;
+    // Persist
+    try {
+      const user = window.currentUser;
+      if (!user) return;
+      const dateStr = `${monthKey}-${String(dayIdx+1).padStart(2,"0")}`;
+      if (next) {
+        await window.supabaseClient.from("habit_logs").upsert(
+          { habit_id: habitId, user_id: user.id, date: dateStr, done: true },
+          { onConflict: "habit_id,date" }
+        );
+      } else {
+        await window.supabaseClient.from("habit_logs")
+          .delete().eq("habit_id", habitId).eq("date", dateStr).eq("user_id", user.id);
+      }
+    } catch(e) { console.error("체크 저장 실패", e); }
+  };
+
+  /* ── HABITS ── */
+  function renderMobileHabits() {
+    const habits = window.appState?.habits || [];
+    const now = new Date();
+    const monthKey = mbMonthKey();
+    const todayIdx = mbTodayIdx();
+    const cardsEl = document.getElementById("mbHabitCards");
+    if (!cardsEl) return;
+    if (!habits.length) {
+      cardsEl.innerHTML = '<div class="mb-habits-empty">＋ 버튼으로 첫 습관을 추가해보세요</div>';
+      return;
+    }
+    const daysInM = mbDaysInMonth(now.getFullYear(), now.getMonth() + 1);
+    const daysSoFar = todayIdx + 1;
+    cardsEl.innerHTML = habits.map((h, i) => {
+      const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+      let cnt = 0;
+      for (let d = 0; d < daysSoFar; d++) if (checks[d]) cnt++;
+      const pct = daysSoFar ? Math.round((cnt / daysSoFar) * 100) : 0;
+      const color = MB_COLORS[i % MB_COLORS.length];
+      const emoji = mbEmoji(h.name);
+      return `<div class="mb-habit-card" id="mbCard_${h.id}"
+        data-id="${h.id}"
+        oncontextmenu="event.preventDefault(); mbOpenCtx('${h.id}', event)"
+        ontouchstart="mbPressStart(this,'${h.id}')"
+        ontouchend="mbPressEnd()"
+        ontouchmove="mbPressEnd()">
+        <span class="mb-drag-handle">⠿</span>
+        <span class="mb-card-emoji">${emoji}</span>
+        <div class="mb-card-info">
+          <div class="mb-card-name">${h.name || "습관"}</div>
+          <div class="mb-card-meta">${cnt}일 완료 · 이번 달 ${pct}%</div>
+        </div>
+        <div class="mb-card-pct" style="color:${color}">${pct}%</div>
+      </div>`;
+    }).join("");
+    mbInitDrag();
+  }
+
+  /* ── ADD HABIT (mobile) ── */
+  window.addHabitMobile = async function() {
+    const input = document.getElementById("mbHabitInput");
+    if (!input) return;
+    const name = (input.value || "").trim();
+    if (!name) { input.focus(); return; }
+    input.value = "";
+    try {
+      const user = window.currentUser;
+      if (!user) return;
+      const habits = window.appState?.habits || [];
+      const { data, error } = await window.supabaseClient.from("habits")
+        .insert({ name, user_id: user.id, position: habits.length })
+        .select().single();
+      if (error) throw error;
+      window.appState.habits = [...habits, data];
+      mbToggleAddRow(false);
+      renderMobileHabits();
+      renderMobileHome();
+    } catch(e) { console.error("습관 추가 실패", e); }
+  };
+
+  /* Toggle add input row */
+  window.mbToggleAddRow = function(forceOpen) {
+    const row = document.getElementById("mbAddRow");
+    const fab  = document.getElementById("mbAddFab");
+    if (!row || !fab) return;
+    const open = forceOpen !== undefined ? forceOpen : !row.classList.contains("open");
+    row.classList.toggle("open", open);
+    fab.classList.toggle("open", open);
+    if (open) setTimeout(() => document.getElementById("mbHabitInput")?.focus(), 80);
+  };
+
+  /* ── Long-press context menu ── */
+  let mbPressTimer = null;
+  window.mbPressStart = function(el, habitId) {
+    mbPressTimer = setTimeout(() => {
+      el.classList.add("mb-pressing");
+      // Trigger context at card bottom
+      const rect = el.getBoundingClientRect();
+      mbOpenCtx(habitId, { clientX: rect.left + rect.width/2, clientY: rect.bottom });
+    }, 500);
+  };
+  window.mbPressEnd = function() {
+    clearTimeout(mbPressTimer);
+    mbPressTimer = null;
+    document.querySelectorAll(".mb-habit-card.mb-pressing").forEach(c => c.classList.remove("mb-pressing"));
+  };
+
+  window.mbOpenCtx = function(habitId, e) {
+    mbCtxHabitId = habitId;
+    const overlay = document.getElementById("mbCtxOverlay");
+    const menu    = document.getElementById("mbCtxMenu");
+    if (!menu || !overlay) return;
+    overlay.classList.add("open");
+    menu.classList.add("open");
+    // Position menu near touch point
+    const mx = (e.clientX || window.innerWidth/2);
+    const my = (e.clientY || window.innerHeight/2);
+    const mw = 180, mh = 160;
+    menu.style.left = Math.min(mx, window.innerWidth  - mw - 8) + "px";
+    menu.style.top  = Math.min(my, window.innerHeight - mh - 8) + "px";
+  };
+  window.mbCloseCtx = function() {
+    document.getElementById("mbCtxOverlay")?.classList.remove("open");
+    document.getElementById("mbCtxMenu")?.classList.remove("open");
+    mbCtxHabitId = null;
+  };
+  window.mbCtxAction = async function(action) {
+    const id = mbCtxHabitId;
+    mbCloseCtx();
+    if (!id) return;
+    const habits = window.appState?.habits || [];
+    const idx = habits.findIndex(h => String(h.id) === String(id));
+    if (idx === -1) return;
+    if (action === "delete") {
+      if (!confirm("이 습관을 삭제할까요?")) return;
+      try {
+        await window.supabaseClient.from("habits").delete()
+          .eq("id", id).eq("user_id", window.currentUser?.id);
+        window.appState.habits = habits.filter(h => String(h.id) !== String(id));
+        renderMobileHabits();
+        renderMobileHome();
+      } catch(e) { console.error("삭제 실패", e); }
+    } else if (action === "up" && idx > 0) {
+      [window.appState.habits[idx-1], window.appState.habits[idx]] =
+      [window.appState.habits[idx],   window.appState.habits[idx-1]];
+      mbSavePositions();
+      renderMobileHabits();
+    } else if (action === "down" && idx < habits.length - 1) {
+      [window.appState.habits[idx+1], window.appState.habits[idx]] =
+      [window.appState.habits[idx],   window.appState.habits[idx+1]];
+      mbSavePositions();
+      renderMobileHabits();
+    }
+  };
+  async function mbSavePositions() {
+    const habits = window.appState?.habits || [];
+    try {
+      await Promise.all(habits.map((h, i) =>
+        window.supabaseClient.from("habits").update({ position: i })
+          .eq("id", h.id).eq("user_id", window.currentUser?.id)
+      ));
+    } catch(e) { console.error("순서 저장 실패", e); }
+  }
+
+  /* ── Drag reorder (touch) ── */
+  function mbInitDrag() {
+    const container = document.getElementById("mbHabitCards");
+    if (!container) return;
+    let dragEl = null, dragIdx = -1, placeholder = null, startY = 0, offsetY = 0;
+
+    container.querySelectorAll(".mb-drag-handle").forEach(handle => {
+      handle.addEventListener("touchstart", e => {
+        e.stopPropagation();
+        dragEl = handle.closest(".mb-habit-card");
+        if (!dragEl) return;
+        dragIdx = [...container.children].indexOf(dragEl);
+        startY = e.touches[0].clientY;
+        const rect = dragEl.getBoundingClientRect();
+        offsetY = startY - rect.top;
+        dragEl.style.position = "fixed";
+        dragEl.style.zIndex = "500";
+        dragEl.style.width = rect.width + "px";
+        dragEl.style.left  = rect.left + "px";
+        dragEl.style.top   = rect.top  + "px";
+        dragEl.style.opacity = "0.88";
+        dragEl.style.boxShadow = "0 8px 24px rgba(0,0,0,0.5)";
+        placeholder = document.createElement("div");
+        placeholder.style.cssText = `height:${rect.height}px;border-radius:16px;background:rgba(245,185,66,0.08);border:2px dashed rgba(245,185,66,0.28);margin-bottom:10px;`;
+        container.insertBefore(placeholder, dragEl.nextSibling);
+      }, { passive: true });
+
+      handle.addEventListener("touchmove", e => {
+        if (!dragEl) return;
+        e.preventDefault();
+        const y = e.touches[0].clientY;
+        dragEl.style.top = (y - offsetY) + "px";
+        // Find insertion target
+        const elAtPoint = document.elementFromPoint(window.innerWidth/2, y);
+        const targetCard = elAtPoint?.closest(".mb-habit-card");
+        if (targetCard && targetCard !== dragEl && targetCard.parentNode === container) {
+          const targetRect = targetCard.getBoundingClientRect();
+          if (y < targetRect.top + targetRect.height / 2) {
+            container.insertBefore(placeholder, targetCard);
+          } else {
+            container.insertBefore(placeholder, targetCard.nextSibling);
+          }
+        }
+      }, { passive: false });
+
+      handle.addEventListener("touchend", async () => {
+        if (!dragEl) return;
+        dragEl.style.cssText = "";
+        container.insertBefore(dragEl, placeholder);
+        placeholder.remove();
+        // Re-order appState.habits
+        const newOrder = [...container.querySelectorAll(".mb-habit-card")]
+          .map(el => el.dataset.id);
+        const all = window.appState?.habits || [];
+        window.appState.habits = newOrder.map(id => all.find(h => String(h.id) === id)).filter(Boolean);
+        await mbSavePositions();
+        dragEl = null;
+      });
+    });
+  }
+
+  /* ── STATS ── */
+  function mbSwitchSub(sub) {
+    mbCurrentSub = sub;
+    ["day","week","month"].forEach(s => {
+      const cap = s.charAt(0).toUpperCase() + s.slice(1);
+      document.getElementById("mbSub" + cap)?.classList.toggle("active", s === sub);
+    });
+    renderMobileStats();
+  }
+  window.mbSwitchSub = mbSwitchSub;
+
+  function renderMobileStats() {
+    const lineCanvas = document.getElementById("mbLineChart");
+    const barCanvas  = document.getElementById("mbBarChart");
+    if (!lineCanvas || !window.Chart) return;
+    if (lineCanvas.offsetWidth === 0) { setTimeout(renderMobileStats, 200); return; }
+
+    const habits = window.appState?.habits || [];
+    const now    = new Date();
+    const y = now.getFullYear(), mo = now.getMonth() + 1;
+    const monthKey = mbMonthKey();
+    const todayIdx = mbTodayIdx();
+    const dim = mbDaysInMonth(y, mo);
+    const DUMMY = [20,35,28,50,62,55,70,65,80,72,60,75,82,78,85,80,90,85,88,92,87,95,91,88,94,96,90,93,97,95,92];
+    const BAR_COLORS = ["rgba(180,205,255,0.80)","rgba(212,230,208,0.78)","rgba(236,219,155,0.78)","rgba(198,181,240,0.78)","rgba(206,228,232,0.78)"];
+
+    let lineLabels, lineData, barLabels, barData, lineLabel, barLabel;
+
+    if (mbCurrentSub === "day") {
+      // Daily data for current month
+      lineLabel = `일별 달성률 (${mo}월)`;
+      barLabel  = "주차별 달성률";
+      lineLabels = Array.from({length: dim}, (_,i) => `${i+1}`);
+      const rd = Array.from({length: dim}, (_,di) => {
+        if (!habits.length) return null;
+        let done = 0;
+        habits.forEach(h => { if ((window.appState?.monthData?.[monthKey]?.[h.id] || [])[di]) done++; });
+        return Math.round((done / habits.length) * 100);
+      });
+      lineData = rd.some(v => v !== null && v > 0) ? rd : DUMMY.slice(0, dim);
+      const weeks = Math.ceil(dim / 7);
+      barLabels = Array.from({length: weeks}, (_,i) => `${i+1}주차`);
+      barData = barLabels.map((_,wi) => {
+        const s = wi*7, e2 = Math.min(s+7, dim);
+        let done=0, total=0;
+        habits.forEach(h => {
+          const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+          for (let d=s; d<e2; d++) { total++; if(checks[d]) done++; }
+        });
+        return total ? Math.round((done/total)*100) : 0;
+      });
+    } else if (mbCurrentSub === "week") {
+      // Last 7 days
+      lineLabel = "최근 7일 달성률";
+      barLabel  = "요일별 달성률";
+      lineLabels = [];
+      lineData   = [];
+      const DOW_KR = ["일","월","화","수","목","금","토"];
+      for (let i = 6; i >= 0; i--) {
+        const dt = new Date(now); dt.setDate(now.getDate() - i);
+        const mk = mbMonthKey(dt); const di = dt.getDate() - 1;
+        lineLabels.push(DOW_KR[dt.getDay()]);
+        if (!habits.length) { lineData.push(0); continue; }
+        let done = 0;
+        habits.forEach(h => { if ((window.appState?.monthData?.[mk]?.[h.id] || [])[di]) done++; });
+        lineData.push(Math.round((done / habits.length) * 100));
+      }
+      // Bar: same 7 days
+      barLabels = lineLabels;
+      barData   = lineData;
+    } else {
+      // Monthly: last 6 months
+      lineLabel = "최근 6개월 달성률";
+      barLabel  = "월별 달성률";
+      lineLabels = []; lineData = [];
+      for (let i = 5; i >= 0; i--) {
+        const dt = new Date(y, mo - 1 - i, 1);
+        const mk = mbMonthKey(dt);
+        const mDim = mbDaysInMonth(dt.getFullYear(), dt.getMonth()+1);
+        lineLabels.push(`${dt.getMonth()+1}월`);
+        if (!habits.length) { lineData.push(0); continue; }
+        let done=0, total=0;
+        habits.forEach(h => {
+          const checks = window.appState?.monthData?.[mk]?.[h.id] || [];
+          for (let d=0; d<mDim; d++) { total++; if(checks[d]) done++; }
+        });
+        lineData.push(total ? Math.round((done/total)*100) : 0);
+      }
+      barLabels = lineLabels; barData = lineData;
+    }
+
+    document.getElementById("mbLineLabel").textContent = lineLabel;
+    document.getElementById("mbBarLabel").textContent  = barLabel;
+
+    const CHART_OPT = (yMax) => ({
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks:{color:"rgba(210,220,240,0.55)",font:{size:8},maxTicksLimit:10}, grid:{display:false} },
+        y: { beginAtZero:true, max:yMax,
+          ticks:{color:"rgba(210,220,240,0.50)",font:{size:8},callback:v=>v+"%"},
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    });
+
+    if (mbLineChartInst) mbLineChartInst.destroy();
+    mbLineChartInst = new Chart(lineCanvas.getContext("2d"), {
+      type: "line",
+      data: { labels: lineLabels, datasets: [{
+        data: lineData, borderColor: "#F5B942",
+        backgroundColor: "rgba(245,185,66,0.10)",
+        fill: true, tension: 0.4, pointRadius: 2,
+        pointBackgroundColor: "#F5B942", borderWidth: 2
+      }] },
+      options: CHART_OPT(100)
+    });
+
+    if (barCanvas && window.Chart) {
+      if (mbBarChartInst) mbBarChartInst.destroy();
+      mbBarChartInst = new Chart(barCanvas.getContext("2d"), {
+        type: "bar",
+        data: { labels: barLabels, datasets: [{
+          data: barData,
+          backgroundColor: barLabels.map((_,i) => BAR_COLORS[i % BAR_COLORS.length]),
+          borderRadius: 8, borderSkipped: false
+        }] },
+        options: CHART_OPT(100)
+      });
+    }
+
+    // Per-habit stat bars
+    const barsEl = document.getElementById("mbStatBars");
+    if (barsEl) {
+      barsEl.innerHTML = habits.map((h, i) => {
+        const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+        const daysSoFar = todayIdx + 1;
+        let cnt = 0;
+        for (let d = 0; d < daysSoFar; d++) if (checks[d]) cnt++;
+        const pct = daysSoFar ? Math.round((cnt / daysSoFar) * 100) : 0;
+        const color = MB_COLORS[i % MB_COLORS.length];
+        return `<div class="mb-stat-bar-row">
+          <div class="mb-stat-bar-top">
+            <span class="mb-stat-bar-name">${mbEmoji(h.name)} ${h.name||"습관"}</span>
+            <span class="mb-stat-bar-pct">${pct}%</span>
+          </div>
+          <div class="mb-stat-bar-bg">
+            <div class="mb-stat-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>`;
+      }).join("") || '<div style="color:rgba(160,175,210,0.35);font-size:12px;padding:12px 0">습관 없음</div>';
+    }
+  }
+
+  /* ── SETTINGS ── */
+  function renderMobileSettings() {
+    const user   = window.currentUser;
+    const habits = window.appState?.habits || [];
+    const emailEl = document.getElementById("mbSetEmail");
+    const countEl = document.getElementById("mbSetCount");
+    if (emailEl) emailEl.textContent = user?.email || "-";
+    if (countEl) countEl.textContent = habits.length + "개";
+  }
+
+  /* ── Data reset ── */
+  window.mbConfirmReset = async function() {
+    if (!confirm("모든 체크 기록을 초기화할까요?\n(습관 목록은 유지됩니다)")) return;
+    try {
+      const user = window.currentUser;
+      if (!user) return;
+      await window.supabaseClient.from("habit_logs").delete().eq("user_id", user.id);
+      window.appState.monthData = {};
+      renderMobileHome();
+      renderMobileStats();
+      alert("초기화 완료!");
+    } catch(e) { console.error("초기화 실패", e); alert("초기화 실패: " + e.message); }
+  };
+
+  /* ── renderMobileAll ── */
+  window.renderMobileAll = function() {
+    // Sync logo from desktop
+    const desktopIcon = document.querySelector(".v2-app-icon");
+    const mbLogo = document.getElementById("mbLogoImg");
+    if (desktopIcon && mbLogo && !mbLogo.src) mbLogo.src = desktopIcon.src;
+    if (mbCurrentTab === "home")     renderMobileHome();
+    if (mbCurrentTab === "habits")   renderMobileHabits();
+    if (mbCurrentTab === "stats")    renderMobileStats();
+    if (mbCurrentTab === "settings") renderMobileSettings();
+  };
+
+  /* Hook into global renderAll */
+  const _origRenderAll = window.renderAll;
+  window.renderAll = function() {
+    if (typeof _origRenderAll === "function") _origRenderAll();
+    if (window.innerWidth <= 768) window.renderMobileAll();
+  };
 
   updateTopDashboardStats();
 
