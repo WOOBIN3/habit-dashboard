@@ -10405,6 +10405,16 @@ html, body {
   }
   .mb-card-meta { font-size: 11px; color: rgba(160,175,210,0.45); margin-top: 2px; }
   .mb-card-pct { font-size: 17px; font-weight: 800; color: #F5B942; flex: 0 0 auto; }
+  .mb-card-del {
+    width: 34px; height: 34px; flex: 0 0 34px;
+    border-radius: 10px; border: 1px solid rgba(248,113,113,0.25);
+    background: rgba(248,113,113,0.08);
+    color: rgba(248,113,113,0.75); font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .mb-card-del:active { background: rgba(248,113,113,0.20); border-color: rgba(248,113,113,0.50); }
   .mb-habits-empty {
     text-align: center; padding: 40px 0;
     font-size: 13px; color: rgba(160,175,210,0.35);
@@ -12686,6 +12696,9 @@ function updateTopDashboardStats(source) {
           <div class="mb-card-meta">${cnt}일 완료 · 이번 달 ${pct}%</div>
         </div>
         <div class="mb-card-pct" style="color:${color}">${pct}%</div>
+        <button class="mb-card-del" type="button"
+          onclick="event.stopPropagation(); mbDeleteHabit('${h.id}')"
+          title="삭제">🗑</button>
       </div>`;
     }).join("");
     mbInitDrag();
@@ -12787,6 +12800,30 @@ function updateTopDashboardStats(source) {
       renderMobileHabits();
     }
   };
+  /* ── 카드 삭제 버튼 ── */
+  window.mbDeleteHabit = async function(habitId) {
+    if (!confirm("이 습관을 삭제할까요?\n(모든 체크 기록도 함께 삭제됩니다)")) return;
+    try {
+      const user = window.currentUser;
+      if (!user) return;
+      // 체크 기록 먼저 삭제
+      await window.supabaseClient.from("habit_checks")
+        .delete().eq("habit_id", habitId).eq("user_id", user.id);
+      // 습관 삭제
+      const { error } = await window.supabaseClient.from("habits")
+        .delete().eq("id", habitId).eq("user_id", user.id);
+      if (error) throw error;
+      window.appState.habits = (window.appState?.habits || [])
+        .filter(h => String(h.id) !== String(habitId));
+      // monthData에서도 제거
+      if (window.appState.monthData) {
+        Object.values(window.appState.monthData).forEach(m => { delete m[habitId]; });
+      }
+      renderMobileHabits();
+      renderMobileHome();
+    } catch(e) { console.error("삭제 실패", e); alert("삭제 실패: " + e.message); }
+  };
+
   async function mbSavePositions() {
     const habits = window.appState?.habits || [];
     try {
