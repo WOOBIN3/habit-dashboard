@@ -10594,6 +10594,94 @@ html, body {
   }
   .mb-reset-btn:active { background: rgba(255,255,255,0.07); }
 
+  /* ── Notification Settings ── */
+  .mb-notif-perm-box {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    background: rgba(245,185,66,0.07);
+    border: 1px solid rgba(245,185,66,0.22);
+    border-radius: 14px; margin-bottom: 14px;
+  }
+  .mb-notif-perm-txt { font-size: 13px; color: rgba(200,215,245,0.78); flex: 1; }
+  .mb-notif-perm-status {
+    font-size: 11px; font-weight: 700; margin-top: 3px;
+  }
+  .mb-notif-perm-status.granted  { color: #68d391; }
+  .mb-notif-perm-status.denied   { color: rgba(248,113,113,0.85); }
+  .mb-notif-perm-status.default  { color: rgba(245,185,66,0.80); }
+  .mb-notif-perm-btn {
+    padding: 8px 14px; border-radius: 10px;
+    background: rgba(245,185,66,0.15);
+    border: 1px solid rgba(245,185,66,0.38);
+    color: #F5B942; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .mb-notif-perm-btn:active { background: rgba(245,185,66,0.28); }
+  .mb-notif-perm-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .mb-notif-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px; overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .mb-notif-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 16px;
+  }
+  .mb-notif-emoji { font-size: 18px; flex: 0 0 auto; }
+  .mb-notif-name {
+    flex: 1; font-size: 14px; color: #c8d5f5; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* Toggle switch */
+  .mb-toggle { position: relative; width: 42px; height: 24px; flex: 0 0 auto; }
+  .mb-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .mb-toggle-slider {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.12);
+    border-radius: 24px; cursor: pointer;
+    transition: background 0.22s;
+  }
+  .mb-toggle-slider::after {
+    content: ""; position: absolute;
+    left: 3px; top: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(180,195,230,0.55);
+    transition: transform 0.22s, background 0.22s;
+  }
+  .mb-toggle input:checked + .mb-toggle-slider {
+    background: rgba(245,185,66,0.55);
+  }
+  .mb-toggle input:checked + .mb-toggle-slider::after {
+    transform: translateX(18px);
+    background: #F5B942;
+  }
+
+  .mb-notif-time {
+    display: none; padding: 0 16px 13px;
+    gap: 8px; align-items: center;
+  }
+  .mb-notif-time.open { display: flex; }
+  .mb-notif-time-lbl { font-size: 12px; color: rgba(160,175,210,0.55); }
+  .mb-notif-select {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; color: #c8d5f5;
+    font-size: 14px; font-weight: 600;
+    padding: 6px 8px; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    text-align: center;
+  }
+  .mb-notif-select:focus { outline: none; border-color: rgba(245,185,66,0.45); }
+  .mb-notif-colon { font-size: 16px; font-weight: 700; color: rgba(200,215,245,0.55); }
+  .mb-notif-empty {
+    font-size: 13px; color: rgba(160,175,210,0.40);
+    text-align: center; padding: 18px 0;
+  }
+
   /* ── Bottom Tab Bar ── */
   .mb-tabbar {
     flex: 0 0 auto; display: flex;
@@ -10851,6 +10939,10 @@ html, body {
             <span class="mb-settings-val" id="mbSetCount">0개</span>
           </div>
         </div>
+        <div class="mb-section-title">알림 설정</div>
+        <div id="mbNotifPermBox"></div>
+        <div id="mbNotifList"></div>
+
         <div class="mb-section-title">앱 정보</div>
         <div class="mb-settings-group">
           <div class="mb-settings-row">
@@ -13230,6 +13322,164 @@ function updateTopDashboardStats(source) {
     mbRenderHeatmap();
   }
 
+  /* ════════════════════════════════════════════
+     NOTIFICATION SYSTEM
+  ════════════════════════════════════════════ */
+  const NOTIF_KEY = "habitNotifSettings_v1";
+  const notifTimers = {};
+
+  function loadNotifSettings() {
+    try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || "{}"); } catch(e) { return {}; }
+  }
+  function saveNotifSettings(s) {
+    try { localStorage.setItem(NOTIF_KEY, JSON.stringify(s)); } catch(e) {}
+  }
+
+  function msUntilTime(h, m) {
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(h, m, 0, 0);
+    let ms = target - now;
+    if (ms <= 1000) ms += 24 * 60 * 60 * 1000;
+    return ms;
+  }
+
+  function scheduleHabitNotif(habitId, habitName, hour, minute) {
+    if (notifTimers[habitId]) { clearTimeout(notifTimers[habitId]); delete notifTimers[habitId]; }
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const delay = msUntilTime(hour, minute);
+    notifTimers[habitId] = setTimeout(() => {
+      try {
+        new Notification("⏰ 습관 체크할 시간이에요!", {
+          body: `${habitName} — 오늘 습관을 체크해보세요! 💪`,
+          icon: "./icon-192.png",
+          tag: `habit-${habitId}`,
+          renotify: true
+        });
+      } catch(e) { console.warn("알림 실패:", e); }
+      scheduleHabitNotif(habitId, habitName, hour, minute); // 내일 재등록
+    }, delay);
+  }
+
+  function scheduleAllNotifs() {
+    const settings = loadNotifSettings();
+    const habits = window.appState?.habits || [];
+    habits.forEach(h => {
+      const id = String(h.id);
+      const cfg = settings[id];
+      if (cfg?.enabled) {
+        scheduleHabitNotif(id, h.name, cfg.hour ?? 9, cfg.minute ?? 0);
+      } else if (notifTimers[id]) {
+        clearTimeout(notifTimers[id]);
+        delete notifTimers[id];
+      }
+    });
+  }
+  window.scheduleAllNotifs = scheduleAllNotifs;
+
+  window.requestNotifPermission = async function() {
+    if (!("Notification" in window)) { alert("이 브라우저는 알림을 지원하지 않아요."); return; }
+    if (Notification.permission === "denied") {
+      alert("알림이 차단됐어요.\n브라우저 설정 > 사이트 권한에서 알림을 허용해주세요.");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    renderNotifPermBox();
+    if (perm === "granted") scheduleAllNotifs();
+  };
+
+  window.toggleHabitNotif = function(habitId, checkbox) {
+    const enabled = checkbox.checked;
+    const settings = loadNotifSettings();
+    if (!settings[habitId]) settings[habitId] = { enabled: false, hour: 9, minute: 0 };
+    settings[habitId].enabled = enabled;
+    saveNotifSettings(settings);
+    const timeRow = document.getElementById(`notifTime_${habitId}`);
+    if (timeRow) timeRow.classList.toggle("open", enabled);
+    const habits = window.appState?.habits || [];
+    const habit  = habits.find(h => String(h.id) === String(habitId));
+    if (enabled && habit && Notification.permission === "granted") {
+      scheduleHabitNotif(String(habitId), habit.name, settings[habitId].hour, settings[habitId].minute);
+    } else {
+      if (notifTimers[habitId]) { clearTimeout(notifTimers[habitId]); delete notifTimers[habitId]; }
+    }
+  };
+
+  window.setHabitNotifTime = function(habitId, type, val) {
+    const settings = loadNotifSettings();
+    if (!settings[habitId]) settings[habitId] = { enabled: false, hour: 9, minute: 0 };
+    settings[habitId][type] = parseInt(val, 10);
+    saveNotifSettings(settings);
+    const habits = window.appState?.habits || [];
+    const habit  = habits.find(h => String(h.id) === String(habitId));
+    if (settings[habitId].enabled && habit && Notification.permission === "granted") {
+      scheduleHabitNotif(String(habitId), habit.name, settings[habitId].hour, settings[habitId].minute);
+    }
+  };
+
+  function renderNotifPermBox() {
+    const box = document.getElementById("mbNotifPermBox");
+    if (!box) return;
+    const supported = "Notification" in window;
+    const perm = supported ? Notification.permission : "denied";
+    const permLabel = { granted: "허용됨", denied: "차단됨", default: "미설정" }[perm] || "미설정";
+    const permClass = { granted: "granted", denied: "denied", default: "default" }[perm] || "default";
+    const btnDisabled = perm === "granted" || !supported ? "disabled" : "";
+    const btnText = perm === "granted" ? "허용됨 ✓" : perm === "denied" ? "브라우저에서 허용 필요" : "알림 권한 요청";
+    box.innerHTML = `
+      <div class="mb-notif-perm-box">
+        <div class="mb-notif-perm-txt">
+          <div>푸시 알림</div>
+          <div class="mb-notif-perm-status ${permClass}">● ${permLabel}</div>
+        </div>
+        <button class="mb-notif-perm-btn" ${btnDisabled}
+          onclick="window.requestNotifPermission()">${btnText}</button>
+      </div>`;
+  }
+
+  function renderNotifList() {
+    const listEl = document.getElementById("mbNotifList");
+    if (!listEl) return;
+    const habits   = window.appState?.habits || [];
+    const settings = loadNotifSettings();
+    if (!habits.length) {
+      listEl.innerHTML = '<div class="mb-notif-empty">습관을 먼저 추가해보세요</div>';
+      return;
+    }
+    const hourOpts  = Array.from({length:24},(_,i)=>
+      `<option value="${i}">${String(i).padStart(2,"0")}</option>`).join("");
+    const minOpts   = [0,5,10,15,20,25,30,35,40,45,50,55].map(m=>
+      `<option value="${m}">${String(m).padStart(2,"0")}</option>`).join("");
+
+    listEl.innerHTML = habits.map(h => {
+      const id  = String(h.id);
+      const cfg = settings[id] || { enabled: false, hour: 9, minute: 0 };
+      const emoji = mbEmoji(h.name);
+      const hSel  = hourOpts.replace(`value="${cfg.hour}"`, `value="${cfg.hour}" selected`);
+      const mSel  = minOpts.replace(`value="${cfg.minute}"`,`value="${cfg.minute}" selected`);
+      return `
+        <div class="mb-notif-item">
+          <div class="mb-notif-row">
+            <span class="mb-notif-emoji">${emoji}</span>
+            <span class="mb-notif-name">${h.name || "습관"}</span>
+            <label class="mb-toggle">
+              <input type="checkbox" ${cfg.enabled?"checked":""}
+                onchange="window.toggleHabitNotif('${id}', this)">
+              <span class="mb-toggle-slider"></span>
+            </label>
+          </div>
+          <div class="mb-notif-time${cfg.enabled?" open":""}" id="notifTime_${id}">
+            <span class="mb-notif-time-lbl">알림 시간</span>
+            <select class="mb-notif-select"
+              onchange="window.setHabitNotifTime('${id}','hour',this.value)">${hSel}</select>
+            <span class="mb-notif-colon">:</span>
+            <select class="mb-notif-select"
+              onchange="window.setHabitNotifTime('${id}','minute',this.value)">${mSel}</select>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
   /* ── SETTINGS ── */
   function renderMobileSettings() {
     const user   = window.currentUser;
@@ -13238,6 +13488,8 @@ function updateTopDashboardStats(source) {
     const countEl = document.getElementById("mbSetCount");
     if (emailEl) emailEl.textContent = user?.email || "-";
     if (countEl) countEl.textContent = habits.length + "개";
+    renderNotifPermBox();
+    renderNotifList();
   }
 
   /* ── Data reset ── */
@@ -13274,6 +13526,11 @@ function updateTopDashboardStats(source) {
   };
 
   updateTopDashboardStats();
+
+  // 앱 로드 시 저장된 알림 스케줄 복원 (habits 로드 후)
+  setTimeout(() => {
+    if (typeof window.scheduleAllNotifs === "function") window.scheduleAllNotifs();
+  }, 1500);
 
 })();
   
