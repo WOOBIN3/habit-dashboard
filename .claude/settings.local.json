@@ -13,7 +13,9 @@
       "Bash(powershell:*)",
       "Bash(ls C:/dev/habit-dashboard/*.json)",
       "Bash(ls -la C:/dev/habit-dashboard/flame-icon*.png)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

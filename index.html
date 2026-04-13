@@ -10451,6 +10451,69 @@ html, body {
   .mb-ctx-item:active { background: rgba(255,255,255,0.06); }
   .mb-ctx-item.ctx-danger { color: rgba(248,113,113,0.90); }
 
+  /* ── Check bounce animation ── */
+  @keyframes checkBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35); }
+    70%  { transform: scale(0.88); }
+    100% { transform: scale(1); }
+  }
+  .mb-done .mb-today-check { animation: checkBounce 0.38s ease; }
+
+  /* ── Motivational message & best streak ── */
+  .mb-motiv-msg {
+    font-size: 13px; color: rgba(200,215,245,0.65);
+    margin: 4px 0 10px; min-height: 18px; text-align: center;
+  }
+  .mb-best-streak {
+    font-size: 12px; color: rgba(245,185,66,0.70);
+    margin-bottom: 12px; text-align: center; min-height: 16px;
+  }
+
+  /* ── All-done toast ── */
+  .mb-all-done-toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: linear-gradient(135deg, rgba(245,185,66,0.18), rgba(212,175,55,0.26));
+    border: 1px solid rgba(245,185,66,0.45);
+    border-radius: 24px; padding: 12px 22px;
+    color: #F5B942; font-size: 14px; font-weight: 700;
+    white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 1200;
+  }
+  .mb-all-done-toast.show {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── Heatmap ── */
+  .mb-heatmap-wrap { margin-bottom: 18px; }
+  .mb-heatmap-title {
+    font-size: 11px; font-weight: 700;
+    color: rgba(200,215,245,0.50); margin-bottom: 8px;
+  }
+  .mb-heatmap-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 3px; margin-bottom: 4px;
+  }
+  .mb-heatmap-dow-lbl {
+    font-size: 8px; font-weight: 700;
+    color: rgba(180,195,230,0.38); text-align: center;
+  }
+  .mb-heatmap-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  }
+  .mb-heatmap-cell {
+    aspect-ratio: 1; border-radius: 3px;
+    background: rgba(255,255,255,0.06);
+    transition: background 0.2s;
+  }
+  .mb-heatmap-cell.hm-1 { background: rgba(245,185,66,0.22); }
+  .mb-heatmap-cell.hm-2 { background: rgba(245,185,66,0.45); }
+  .mb-heatmap-cell.hm-3 { background: rgba(245,185,66,0.70); }
+  .mb-heatmap-cell.hm-4 { background: rgba(245,185,66,0.92); }
+
   /* ══ STATS TAB ══ */
   .mb-stats-subtabs {
     display: flex; gap: 6px; margin-bottom: 16px;
@@ -10733,6 +10796,8 @@ html, body {
           </div>
         </div>
 
+        <p class="mb-motiv-msg" id="mbMotivMsg"></p>
+        <div class="mb-best-streak" id="mbBestStreak"></div>
         <div class="mb-section-title">오늘의 습관</div>
         <div class="mb-today-list" id="mbTodayList"></div>
       </div>
@@ -10768,6 +10833,7 @@ html, body {
         <div class="mb-chart-card"><canvas id="mbLineChart"></canvas></div>
         <div class="mb-chart-label" id="mbBarLabel">주차별 달성률</div>
         <div class="mb-chart-card"><canvas id="mbBarChart"></canvas></div>
+        <div class="mb-heatmap-wrap" id="mbHeatmap"></div>
         <div class="mb-section-title">습관별 달성률</div>
         <div class="mb-stat-bars" id="mbStatBars"></div>
       </div>
@@ -10789,7 +10855,7 @@ html, body {
         <div class="mb-settings-group">
           <div class="mb-settings-row">
             <span class="mb-settings-lbl">버전</span>
-            <span class="mb-settings-val">1.0.0</span>
+            <span class="mb-settings-val">1.1.0</span>
           </div>
         </div>
         <div class="mb-section-title">계정 관리</div>
@@ -10818,6 +10884,9 @@ html, body {
     </nav>
 
   </div><!-- /mb-shell -->
+
+  <!-- All done toast -->
+  <div class="mb-all-done-toast" id="mbAllDoneToast"></div>
 
   <!-- Context menu (global) -->
   <div class="mb-ctx-overlay" id="mbCtxOverlay" onclick="mbCloseCtx()"></div>
@@ -10912,38 +10981,34 @@ window.toggleHabitCheck = async function (habitId, dayIndex) {
     console.error("로컬 저장 실패:", error);
   }
 
-  if (typeof window.renderAll === "function") {
-    window.renderAll();
-  }
+  requestAnimationFrame(() => {
+    if (typeof window.renderAll === "function") window.renderAll();
+    refreshTopDashboardAfterCheck();
+  });
 
   const user = window.currentUser || null;
   if (!user) return;
 
-  try {
-    const { error } = await window.supabaseClient
-      .from("habit_checks")
-      .upsert(
-        {
-          user_id: user.id,
-          habit_id: habitId,
-          check_date: checkDate,
-          checked: checked
-        },
-        {
-          onConflict: "user_id,habit_id,check_date"
-        }
-      );
-
-    if (error) {
-      console.error("체크 저장 실패:", error);
-      alert("체크 저장 실패");
+  // 백그라운드 DB 저장
+  (async () => {
+    try {
+      if (!navigator.onLine) {
+        window.appState.pendingCheckQueue = window.appState.pendingCheckQueue || [];
+        window.appState.pendingCheckQueue.push({ habitId, checkDate, checked, userId: user.id });
+        try { localStorage.setItem("habitDashboardDataPWA", JSON.stringify(window.appState)); } catch(e) {}
+        return;
+      }
+      const { error } = await window.supabaseClient
+        .from("habit_checks")
+        .upsert(
+          { user_id: user.id, habit_id: habitId, check_date: checkDate, checked: checked },
+          { onConflict: "user_id,habit_id,check_date" }
+        );
+      if (error) console.error("체크 저장 실패:", error);
+    } catch (error) {
+      console.error("toggleHabitCheck 전체 오류:", error);
     }
-  } catch (error) {
-    console.error("toggleHabitCheck 전체 오류:", error);
-    alert("체크 저장 중 오류 발생");
-  }
-
-  refreshTopDashboardAfterCheck();
+  })();
 };
 
   try {
@@ -12409,7 +12474,30 @@ function updateNetworkStatus() {
 }
 
 async function flushPendingChecks() {
-  console.log("flushPendingChecks 아래까지 실행됨");
+  const state = window.appState;
+  if (!state || !state.pendingCheckQueue || !state.pendingCheckQueue.length) return;
+  const queue = [...state.pendingCheckQueue];
+  state.pendingCheckQueue = [];
+  state.isSyncing = true;
+  for (const item of queue) {
+    try {
+      if (item.checked) {
+        await window.supabaseClient.from("habit_checks").upsert(
+          { habit_id: item.habitId, user_id: item.userId, check_date: item.checkDate, checked: true },
+          { onConflict: "user_id,habit_id,check_date" }
+        );
+      } else {
+        await window.supabaseClient.from("habit_checks")
+          .delete().eq("habit_id", item.habitId).eq("check_date", item.checkDate).eq("user_id", item.userId);
+      }
+    } catch(e) {
+      console.error("pendingCheck 동기화 실패:", e);
+      state.pendingCheckQueue.push(item);
+    }
+  }
+  state.isSyncing = false;
+  try { localStorage.setItem("habitDashboardDataPWA", JSON.stringify(state)); } catch(e) {}
+  console.log(`flushPendingChecks 완료: ${queue.length}건 처리`);
 }
 
 function showToast(message, type = "success") {
@@ -12527,6 +12615,67 @@ function updateTopDashboardStats(source) {
   }
   function mbDaysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
 
+  /* ── All-done toast ── */
+  function mbShowAllDoneToast() {
+    const el = document.getElementById("mbAllDoneToast");
+    if (!el) return;
+    el.textContent = "🎉 오늘 모든 습관 완료!";
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2800);
+  }
+
+  /* ── Best streak (this month) ── */
+  function mbComputeBestStreak() {
+    const habits = window.appState?.habits || [];
+    if (!habits.length) return 0;
+    const todayIdx = mbTodayIdx();
+    const monthKey = mbMonthKey();
+    let best = 0, cur = 0;
+    for (let di = 0; di <= todayIdx; di++) {
+      const allDone = habits.every(h => {
+        const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+        return !!checks[di];
+      });
+      if (allDone) { cur++; best = Math.max(best, cur); }
+      else cur = 0;
+    }
+    return best;
+  }
+
+  /* ── Heatmap ── */
+  function mbRenderHeatmap() {
+    const el = document.getElementById("mbHeatmap");
+    if (!el) return;
+    const habits = window.appState?.habits || [];
+    const now = new Date();
+    const y = now.getFullYear(), mo = now.getMonth() + 1;
+    const monthKey = mbMonthKey();
+    const dim = mbDaysInMonth(y, mo);
+    const todayIdx = mbTodayIdx();
+    const DOW = ["일","월","화","수","목","금","토"];
+    const firstDow = new Date(y, mo - 1, 1).getDay();
+    const cells = [];
+    for (let i = 0; i < firstDow; i++) cells.push(null);
+    for (let d = 0; d < dim; d++) {
+      if (d > todayIdx) { cells.push(-1); continue; }
+      let done = 0;
+      habits.forEach(h => {
+        const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+        if (checks[d]) done++;
+      });
+      cells.push(habits.length ? done / habits.length : 0);
+    }
+    el.innerHTML = `
+      <div class="mb-heatmap-title">${mo}월 달성 히트맵</div>
+      <div class="mb-heatmap-dow">${DOW.map(d => `<div class="mb-heatmap-dow-lbl">${d}</div>`).join("")}</div>
+      <div class="mb-heatmap-grid">${cells.map(v => {
+        if (v === null) return `<div class="mb-heatmap-cell" style="opacity:0"></div>`;
+        if (v === -1)  return `<div class="mb-heatmap-cell" style="opacity:0.25"></div>`;
+        const cls = v === 0 ? "" : v < 0.34 ? "hm-1" : v < 0.67 ? "hm-2" : v < 1 ? "hm-3" : "hm-4";
+        return `<div class="mb-heatmap-cell ${cls}" title="${Math.round(v*100)}%"></div>`;
+      }).join("")}</div>`;
+  }
+
   /* ── compute streak (consecutive days all habits done) ── */
   function mbComputeStreak() {
     const habits = window.appState?.habits || [];
@@ -12558,7 +12707,7 @@ function updateTopDashboardStats(source) {
     });
     if (tab === "home")     renderMobileHome();
     if (tab === "habits")   renderMobileHabits();
-    if (tab === "stats")    setTimeout(renderMobileStats, 80);
+    if (tab === "stats")    { setTimeout(renderMobileStats, 80); setTimeout(mbRenderHeatmap, 80); }
     if (tab === "settings") renderMobileSettings();
   };
 
@@ -12598,11 +12747,27 @@ function updateTopDashboardStats(source) {
     const pctEl = document.getElementById("mbDonutPct");
     if (pctEl) pctEl.textContent = pct + "%";
 
+    // Motivational message
+    const motivEl = document.getElementById("mbMotivMsg");
+    if (motivEl) {
+      if (!habits.length)  motivEl.textContent = "";
+      else if (pct === 0)  motivEl.textContent = "오늘도 화이팅! 첫 번째 습관을 완료해보세요 💪";
+      else if (pct < 50)   motivEl.textContent = "잘 하고 있어요! 계속 이어가 봐요 🙌";
+      else if (pct < 100)  motivEl.textContent = "거의 다 왔어요! 조금만 더 힘내세요 🔥";
+      else                 motivEl.textContent = "완벽해요! 오늘 모든 습관을 완료했어요 🎉";
+    }
+    // Best streak
+    const bestStreakEl = document.getElementById("mbBestStreak");
+    if (bestStreakEl) {
+      const best = mbComputeBestStreak();
+      bestStreakEl.textContent = best > 0 ? `이번 달 최고 연속: ${best}일` : "";
+    }
+
     // Today habit checklist
     const listEl = document.getElementById("mbTodayList");
     if (!listEl) return;
     if (!habits.length) {
-      listEl.innerHTML = '<div class="mb-today-empty">습관 탭에서 습관을 추가해보세요</div>';
+      listEl.innerHTML = '<div class="mb-today-empty">아직 습관이 없어요.<br>하단 <b>습관</b> 탭에서 첫 습관을 만들어보세요 ✨</div>';
       return;
     }
     listEl.innerHTML = habits.map((h, i) => {
@@ -12621,7 +12786,7 @@ function updateTopDashboardStats(source) {
   }
 
   /* Toggle from home tab */
-  window.mbTodayToggle = async function(habitId, monthKey, dayIdx, itemEl) {
+  window.mbTodayToggle = function(habitId, monthKey, dayIdx, itemEl) {
     if (!window.appState) window.appState = {};
     if (!window.appState.monthData) window.appState.monthData = {};
     if (!window.appState.monthData[monthKey]) window.appState.monthData[monthKey] = {};
@@ -12629,37 +12794,52 @@ function updateTopDashboardStats(source) {
     const next = !window.appState.monthData[monthKey][habitId][dayIdx];
     window.appState.monthData[monthKey][habitId][dayIdx] = next;
     itemEl.classList.toggle("mb-done", next);
-    // Update donut
-    const habits = window.appState?.habits || [];
-    let done = 0;
-    habits.forEach(h => {
-      const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
-      if (checks[dayIdx]) done++;
+    try { localStorage.setItem("habitDashboardDataPWA", JSON.stringify(window.appState)); } catch(e) {}
+
+    requestAnimationFrame(() => {
+      // Update donut
+      const habits = window.appState?.habits || [];
+      let done = 0;
+      habits.forEach(h => {
+        const checks = window.appState?.monthData?.[monthKey]?.[h.id] || [];
+        if (checks[dayIdx]) done++;
+      });
+      const pct = habits.length ? Math.round((done / habits.length) * 100) : 0;
+      const arc = document.getElementById("mbDonutArc");
+      const pctEl = document.getElementById("mbDonutPct");
+      if (arc) arc.setAttribute("stroke-dashoffset", String(2 * Math.PI * 38 * (1 - pct / 100)));
+      if (pctEl) pctEl.textContent = pct + "%";
+      // Streak
+      const streak = mbComputeStreak();
+      const badgeEl = document.getElementById("mbStreakBadge");
+      if (badgeEl) badgeEl.textContent = `🔥 ${streak}일 연속`;
+      // 모든 습관 완료시 토스트
+      if (next && done === habits.length && habits.length > 0) mbShowAllDoneToast();
     });
-    const pct = habits.length ? Math.round((done / habits.length) * 100) : 0;
-    const arc = document.getElementById("mbDonutArc");
-    const pctEl = document.getElementById("mbDonutPct");
-    if (arc) arc.setAttribute("stroke-dashoffset", String(2 * Math.PI * 38 * (1 - pct / 100)));
-    if (pctEl) pctEl.textContent = pct + "%";
-    // Streak
-    const streak = mbComputeStreak();
-    const badgeEl = document.getElementById("mbStreakBadge");
-    if (badgeEl) badgeEl.textContent = `🔥 ${streak}일 연속`;
-    // Persist
-    try {
-      const user = window.currentUser;
-      if (!user) return;
-      const dateStr = `${monthKey}-${String(dayIdx+1).padStart(2,"0")}`;
-      if (next) {
-        await window.supabaseClient.from("habit_checks").upsert(
-          { habit_id: habitId, user_id: user.id, check_date: dateStr, checked: true },
-          { onConflict: "user_id,habit_id,check_date" }
-        );
-      } else {
-        await window.supabaseClient.from("habit_checks")
-          .delete().eq("habit_id", habitId).eq("check_date", dateStr).eq("user_id", user.id);
-      }
-    } catch(e) { console.error("체크 저장 실패", e); }
+
+    // 백그라운드 DB 저장
+    const user = window.currentUser;
+    if (!user) return;
+    const dateStr = `${monthKey}-${String(dayIdx+1).padStart(2,"0")}`;
+    (async () => {
+      try {
+        if (!navigator.onLine) {
+          window.appState.pendingCheckQueue = window.appState.pendingCheckQueue || [];
+          window.appState.pendingCheckQueue.push({ habitId, checkDate: dateStr, checked: next, userId: user.id });
+          try { localStorage.setItem("habitDashboardDataPWA", JSON.stringify(window.appState)); } catch(e) {}
+          return;
+        }
+        if (next) {
+          await window.supabaseClient.from("habit_checks").upsert(
+            { habit_id: habitId, user_id: user.id, check_date: dateStr, checked: true },
+            { onConflict: "user_id,habit_id,check_date" }
+          );
+        } else {
+          await window.supabaseClient.from("habit_checks")
+            .delete().eq("habit_id", habitId).eq("check_date", dateStr).eq("user_id", user.id);
+        }
+      } catch(e) { console.error("체크 저장 실패", e); }
+    })();
   };
 
   /* ── HABITS ── */
@@ -12671,7 +12851,7 @@ function updateTopDashboardStats(source) {
     const cardsEl = document.getElementById("mbHabitCards");
     if (!cardsEl) return;
     if (!habits.length) {
-      cardsEl.innerHTML = '<div class="mb-habits-empty">＋ 버튼으로 첫 습관을 추가해보세요</div>';
+      cardsEl.innerHTML = '<div class="mb-habits-empty">아직 습관이 없어요.<br>위 <b>＋</b> 버튼을 눌러 첫 습관을 추가해보세요 🌱</div>';
       return;
     }
     const daysInM = mbDaysInMonth(now.getFullYear(), now.getMonth() + 1);
@@ -13045,8 +13225,9 @@ function updateTopDashboardStats(source) {
             <div class="mb-stat-bar-fill" style="width:${pct}%;background:${color}"></div>
           </div>
         </div>`;
-      }).join("") || '<div style="color:rgba(160,175,210,0.35);font-size:12px;padding:12px 0">습관 없음</div>';
+      }).join("") || '<div style="color:rgba(160,175,210,0.35);font-size:13px;padding:20px 0;text-align:center">아직 습관이 없어요.<br>습관 탭에서 추가해보세요 🌱</div>';
     }
+    mbRenderHeatmap();
   }
 
   /* ── SETTINGS ── */
