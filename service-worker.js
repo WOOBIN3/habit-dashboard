@@ -1,10 +1,10 @@
-const CACHE_NAME = "habit-dashboard-v8";
+const CACHE_NAME = "habit-dashboard-v9";
 const urlsToCache = [
   "/",
   "/index.html",
   "/manifest.json",
-  "/icon-192-v3.png",
-  "/icon-512-v3.png"
+  "/flame-icon-192.png",
+  "/flame-icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
