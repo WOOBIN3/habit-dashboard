@@ -10834,11 +10834,34 @@ html, body {
   const AUTH_URL = "https://enzkrtjtrddehzgsiujt.supabase.co";
   const AUTH_KEY = "sb_publishable_7_M136eKhaNh0ElgG3q2Iw_t82JEyMl";
 
+  // iOS Safari PWA: localStorage + sessionStorage 동시 사용하는 커스텀 스토리지
+  const iosStorage = {
+    getItem: function (key) {
+      try {
+        var v = localStorage.getItem(key);
+        if (v !== null) return v;
+      } catch (e) {}
+      try {
+        return sessionStorage.getItem(key);
+      } catch (e) {}
+      return null;
+    },
+    setItem: function (key, value) {
+      try { localStorage.setItem(key, value); } catch (e) {}
+      try { sessionStorage.setItem(key, value); } catch (e) {}
+    },
+    removeItem: function (key) {
+      try { localStorage.removeItem(key); } catch (e) {}
+      try { sessionStorage.removeItem(key); } catch (e) {}
+    }
+  };
+
   const authClient = window.supabase.createClient(AUTH_URL, AUTH_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: iosStorage
     }
   });
 
@@ -12270,9 +12293,52 @@ console.log("세션 복원 성공:", user.email);
     }
   }
 
+  // Supabase 인증 상태 변화 리스너 (자동 토큰 갱신 등 처리)
+  window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    console.log("onAuthStateChange:", event);
+    if (event === "SIGNED_IN" && session?.user) {
+      if (!window.currentUser) {
+        window.currentUser = session.user;
+        const authScreen = document.getElementById("authScreen");
+        const appScreen = document.getElementById("appScreen");
+        if (authScreen) authScreen.classList.add("hidden");
+        if (appScreen) appScreen.classList.remove("hidden");
+        const userEmailEl = document.getElementById("userEmail");
+        if (userEmailEl) userEmailEl.textContent = session.user.email || "";
+        if (typeof window.loadHabitsFromSupabase === "function") await window.loadHabitsFromSupabase();
+        if (typeof window.loadHabitChecksFromSupabase === "function") await window.loadHabitChecksFromSupabase();
+        if (typeof window.renderAll === "function") window.renderAll();
+      }
+    } else if (event === "SIGNED_OUT") {
+      window.currentUser = null;
+      const authScreen = document.getElementById("authScreen");
+      const appScreen = document.getElementById("appScreen");
+      if (authScreen) authScreen.classList.remove("hidden");
+      if (appScreen) appScreen.classList.add("hidden");
+    } else if (event === "TOKEN_REFRESHED" && session?.user) {
+      window.currentUser = session.user;
+    }
+  });
+
   document.addEventListener("DOMContentLoaded", async () => {
     console.log("DOMContentLoaded 실행");
     await restoreSession();
+  });
+
+  // iOS PWA: 홈 화면에서 앱 재진입 시(bfcache 복원) 세션 재확인
+  window.addEventListener("pageshow", async (event) => {
+    if (event.persisted && !window.currentUser) {
+      console.log("pageshow(persisted) - 세션 재확인");
+      await restoreSession();
+    }
+  });
+
+  // iOS PWA standalone: visibilitychange로 포그라운드 복귀 시 세션 재확인
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible" && !window.currentUser) {
+      console.log("visibilitychange visible - 세션 재확인");
+      await restoreSession();
+    }
   });
 
   window.signUp = async function () {
@@ -12366,25 +12432,26 @@ console.log("세션 복원 성공:", user.email);
 
   window.signOut = async function () {
     try {
-      const { error } = await window.supabaseClient.auth.signOut();
-      if (error) {
-        console.error("로그아웃 실패:", error);
-        return;
-      }
-
-      window.currentUser = null;
-
-      const authScreen = document.getElementById("authScreen");
-      const appScreen = document.getElementById("appScreen");
-
-      if (authScreen) authScreen.classList.remove("hidden");
-      if (appScreen) appScreen.classList.add("hidden");
-
-      localStorage.removeItem("selectedHabitId");
-      console.log("로그아웃 완료");
+      await window.supabaseClient.auth.signOut();
     } catch (error) {
       console.error("로그아웃 오류:", error);
     }
+
+    // iOS 대비: Supabase 세션 키 강제 삭제
+    const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
+    try { localStorage.removeItem(SUPA_KEY); } catch (e) {}
+    try { sessionStorage.removeItem(SUPA_KEY); } catch (e) {}
+    try { localStorage.removeItem("selectedHabitId"); } catch (e) {}
+
+    window.currentUser = null;
+
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("appScreen");
+
+    if (authScreen) authScreen.classList.remove("hidden");
+    if (appScreen) appScreen.classList.add("hidden");
+
+    console.log("로그아웃 완료");
   };
 
 let deferredInstallPrompt = null;
