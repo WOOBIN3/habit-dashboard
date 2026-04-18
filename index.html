@@ -10606,7 +10606,7 @@ html, body {
       <button id="installBtn" class="install-btn hidden" type="button">앱 설치</button>
       <div id="pendingSyncBadge" class="pending-sync-badge hidden">동기화 대기 0</div>
       <div id="userEmail" class="v2-user-pill"></div>
-      <button class="v2-logout-btn" type="button" onclick="window.signOut()">로그아웃</button>
+      <button class="v2-logout-btn" id="v2LogoutBtn" type="button" onclick="window.signOut()">로그아웃</button>
     </div>
   </div>
 
@@ -10793,8 +10793,8 @@ html, body {
           </div>
         </div>
         <div class="mb-section-title">계정 관리</div>
-        <button class="mb-logout-btn" type="button"
-          onclick="window.handleLogout && window.handleLogout()">로그아웃</button>
+        <button class="mb-logout-btn" id="mbLogoutBtn" type="button"
+          onclick="window.signOut()">로그아웃</button>
         <button class="mb-reset-btn" type="button"
           onclick="mbConfirmReset()">데이터 초기화</button>
       </div>
@@ -10834,25 +10834,16 @@ html, body {
   const AUTH_URL = "https://enzkrtjtrddehzgsiujt.supabase.co";
   const AUTH_KEY = "sb_publishable_7_M136eKhaNh0ElgG3q2Iw_t82JEyMl";
 
-  // iOS Safari PWA: localStorage + sessionStorage 동시 사용하는 커스텀 스토리지
+  // iOS Safari PWA: localStorage 전용 스토리지 (세션 영속성 보장)
   const iosStorage = {
     getItem: function (key) {
-      try {
-        var v = localStorage.getItem(key);
-        if (v !== null) return v;
-      } catch (e) {}
-      try {
-        return sessionStorage.getItem(key);
-      } catch (e) {}
-      return null;
+      try { return localStorage.getItem(key); } catch (e) { return null; }
     },
     setItem: function (key, value) {
       try { localStorage.setItem(key, value); } catch (e) {}
-      try { sessionStorage.setItem(key, value); } catch (e) {}
     },
     removeItem: function (key) {
       try { localStorage.removeItem(key); } catch (e) {}
-      try { sessionStorage.removeItem(key); } catch (e) {}
     }
   };
 
@@ -12239,17 +12230,34 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function restoreSession() {
     try {
+      let user = null;
+
+      // 1차: getSession()으로 현재 세션 확인
       const { data, error } = await window.supabaseClient.auth.getSession();
-      if (error) {
-        console.error("세션 확인 실패:", error);
-        return;
+      if (!error && data?.session?.user) {
+        user = data.session.user;
+      } else {
+        // 2차: getSession 실패 또는 세션 없음 → refreshSession() 시도
+        console.log("getSession 결과 없음, refreshSession 시도");
+        try {
+          const { data: rd, error: re } = await window.supabaseClient.auth.refreshSession();
+          if (!re && rd?.session?.user) {
+            user = rd.session.user;
+            // 갱신된 세션을 localStorage에 명시 저장
+            const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
+            try { localStorage.setItem(SUPA_KEY, JSON.stringify(rd.session)); } catch (e) {}
+          }
+        } catch (re) {
+          console.log("refreshSession 실패:", re);
+        }
       }
 
-      const session = data?.session || null;
-      const user = session?.user || null;
-
       if (!user) {
-        console.log("세션 없음");
+        console.log("세션 없음 → 로그인 화면");
+        const authScreen = document.getElementById("authScreen");
+        const appScreen = document.getElementById("appScreen");
+        if (authScreen) authScreen.classList.remove("hidden");
+        if (appScreen) appScreen.classList.add("hidden");
         return;
       }
 
@@ -12290,6 +12298,11 @@ setTimeout(() => {
 console.log("세션 복원 성공:", user.email);
     } catch (error) {
       console.error("restoreSession 오류:", error);
+      // 예외 발생 시에도 로그인 화면 표시
+      const authScreen = document.getElementById("authScreen");
+      const appScreen = document.getElementById("appScreen");
+      if (authScreen) authScreen.classList.remove("hidden");
+      if (appScreen) appScreen.classList.add("hidden");
     }
   }
 
@@ -12398,6 +12411,12 @@ console.log("세션 복원 성공:", user.email);
 
       window.currentUser = user;
 
+      // iOS PWA: 세션을 localStorage에 명시 저장
+      if (data?.session) {
+        const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
+        try { localStorage.setItem(SUPA_KEY, JSON.stringify(data.session)); } catch (e) {}
+      }
+
       const authScreen = document.getElementById("authScreen");
       const appScreen = document.getElementById("appScreen");
 
@@ -12454,6 +12473,8 @@ console.log("세션 복원 성공:", user.email);
     console.log("로그아웃 완료");
   };
 
+  window.handleLogout = window.signOut;
+
 let deferredInstallPrompt = null;
 
 function isStandaloneMode() {
@@ -12498,6 +12519,22 @@ document.addEventListener("DOMContentLoaded", () => {
       installBtn.classList.add("hidden");
     });
   }
+
+  // iOS Safari PWA: touchend로 로그아웃 버튼 이벤트 보장
+  function addIosLogoutTouch(id) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    let touchMoved = false;
+    btn.addEventListener("touchstart", () => { touchMoved = false; }, { passive: true });
+    btn.addEventListener("touchmove", () => { touchMoved = true; }, { passive: true });
+    btn.addEventListener("touchend", (e) => {
+      if (touchMoved) return;
+      e.preventDefault();
+      if (typeof window.signOut === "function") window.signOut();
+    });
+  }
+  addIosLogoutTouch("v2LogoutBtn");
+  addIosLogoutTouch("mbLogoutBtn");
 });
 
 window.addEventListener("online", async () => {
