@@ -12228,128 +12228,81 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-  async function restoreSession() {
-    try {
-      let user = null;
-
-      // 1차: getSession()으로 현재 세션 확인
-      const { data, error } = await window.supabaseClient.auth.getSession();
-      if (!error && data?.session?.user) {
-        user = data.session.user;
-      } else {
-        // 2차: getSession 실패 또는 세션 없음 → refreshSession() 시도
-        console.log("getSession 결과 없음, refreshSession 시도");
-        try {
-          const { data: rd, error: re } = await window.supabaseClient.auth.refreshSession();
-          if (!re && rd?.session?.user) {
-            user = rd.session.user;
-            // 갱신된 세션을 localStorage에 명시 저장
-            const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
-            try { localStorage.setItem(SUPA_KEY, JSON.stringify(rd.session)); } catch (e) {}
-          }
-        } catch (re) {
-          console.log("refreshSession 실패:", re);
-        }
-      }
-
-      if (!user) {
-        console.log("세션 없음 → 로그인 화면");
-        const authScreen = document.getElementById("authScreen");
-        const appScreen = document.getElementById("appScreen");
-        if (authScreen) authScreen.classList.remove("hidden");
-        if (appScreen) appScreen.classList.add("hidden");
-        return;
-      }
-
-      window.currentUser = user;
-
-      const authScreen = document.getElementById("authScreen");
-      const appScreen = document.getElementById("appScreen");
-
-      if (authScreen) authScreen.classList.add("hidden");
-      if (appScreen) appScreen.classList.remove("hidden");
-
-      const userEmailEl = document.getElementById("userEmail");
-      if (userEmailEl) {
-        userEmailEl.textContent = user.email || "";
-      }
-
-if (typeof window.loadHabitsFromSupabase === "function") {
-  await window.loadHabitsFromSupabase();
-}
-
-if (typeof window.loadHabitChecksFromSupabase === "function") {
-  await window.loadHabitChecksFromSupabase();
-}
-
-if (typeof window.renderAll === "function") {
-  window.renderAll();
-}
-
-refreshTopDashboardAfterCheck();
-
-// appScreen hidden 제거 후 canvas가 실제로 렌더링된 다음 차트 재실행
-setTimeout(() => {
-  if (typeof window.renderMainLineChart === "function") {
-    window.renderMainLineChart(window.appState?.habits || []);
-  }
-}, 200);
-
-console.log("세션 복원 성공:", user.email);
-    } catch (error) {
-      console.error("restoreSession 오류:", error);
-      // 예외 발생 시에도 로그인 화면 표시
-      const authScreen = document.getElementById("authScreen");
-      const appScreen = document.getElementById("appScreen");
-      if (authScreen) authScreen.classList.remove("hidden");
-      if (appScreen) appScreen.classList.add("hidden");
-    }
+  // ── 공통 헬퍼 ────────────────────────────────────────────
+  function showLogin() {
+    window.currentUser = null;
+    document.getElementById("authScreen")?.classList.remove("hidden");
+    document.getElementById("appScreen")?.classList.add("hidden");
+    console.log("로그인 화면 표시");
   }
 
-  // Supabase 인증 상태 변화 리스너 (자동 토큰 갱신 등 처리)
+  async function showApp(user) {
+    window.currentUser = user;
+    document.getElementById("authScreen")?.classList.add("hidden");
+    document.getElementById("appScreen")?.classList.remove("hidden");
+    const el = document.getElementById("userEmail");
+    if (el) el.textContent = user.email || "";
+    if (typeof window.loadHabitsFromSupabase === "function") await window.loadHabitsFromSupabase();
+    if (typeof window.loadHabitChecksFromSupabase === "function") await window.loadHabitChecksFromSupabase();
+    if (typeof window.renderAll === "function") window.renderAll();
+    if (typeof refreshTopDashboardAfterCheck === "function") refreshTopDashboardAfterCheck();
+    setTimeout(() => {
+      if (typeof window.renderMainLineChart === "function") {
+        window.renderMainLineChart(window.appState?.habits || []);
+      }
+    }, 200);
+    console.log("앱 화면 표시:", user.email);
+  }
+
+  // ── Supabase 인증 상태 리스너 ─────────────────────────────
+  // INITIAL_SESSION: 클라이언트 초기화 직후 즉시 발생 (DOM 준비 완료 상태)
+  // → 세션 유무를 여기서 즉시 판단해 화면 결정
   window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    console.log("onAuthStateChange:", event);
-    if (event === "SIGNED_IN" && session?.user) {
-      if (!window.currentUser) {
-        window.currentUser = session.user;
-        const authScreen = document.getElementById("authScreen");
-        const appScreen = document.getElementById("appScreen");
-        if (authScreen) authScreen.classList.add("hidden");
-        if (appScreen) appScreen.classList.remove("hidden");
-        const userEmailEl = document.getElementById("userEmail");
-        if (userEmailEl) userEmailEl.textContent = session.user.email || "";
-        if (typeof window.loadHabitsFromSupabase === "function") await window.loadHabitsFromSupabase();
-        if (typeof window.loadHabitChecksFromSupabase === "function") await window.loadHabitChecksFromSupabase();
-        if (typeof window.renderAll === "function") window.renderAll();
+    console.log("onAuthStateChange:", event, session?.user?.email || "no user");
+
+    if (event === "INITIAL_SESSION") {
+      if (session?.user) {
+        await showApp(session.user);
+      } else {
+        showLogin();
       }
+      return;
+    }
+
+    if (event === "SIGNED_IN" && session?.user) {
+      if (!window.currentUser) await showApp(session.user);
     } else if (event === "SIGNED_OUT") {
-      window.currentUser = null;
-      const authScreen = document.getElementById("authScreen");
-      const appScreen = document.getElementById("appScreen");
-      if (authScreen) authScreen.classList.remove("hidden");
-      if (appScreen) appScreen.classList.add("hidden");
+      showLogin();
     } else if (event === "TOKEN_REFRESHED" && session?.user) {
       window.currentUser = session.user;
     }
   });
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    console.log("DOMContentLoaded 실행");
-    await restoreSession();
-  });
+  // ── pageshow / visibilitychange: 백그라운드 복귀 시 재확인 ──
+  async function restoreSession() {
+    try {
+      const { data } = await window.supabaseClient.auth.getSession();
+      if (data?.session?.user) {
+        await showApp(data.session.user);
+      } else {
+        showLogin();
+      }
+    } catch (e) {
+      console.error("restoreSession 오류:", e);
+      showLogin();
+    }
+  }
 
-  // iOS PWA: 홈 화면에서 앱 재진입 시(bfcache 복원) 세션 재확인
-  window.addEventListener("pageshow", async (event) => {
-    if (event.persisted && !window.currentUser) {
+  window.addEventListener("pageshow", async (ev) => {
+    if (ev.persisted && !window.currentUser) {
       console.log("pageshow(persisted) - 세션 재확인");
       await restoreSession();
     }
   });
 
-  // iOS PWA standalone: visibilitychange로 포그라운드 복귀 시 세션 재확인
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible" && !window.currentUser) {
-      console.log("visibilitychange visible - 세션 재확인");
+      console.log("visibilitychange - 세션 재확인");
       await restoreSession();
     }
   });
@@ -12409,40 +12362,10 @@ console.log("세션 복원 성공:", user.email);
         return;
       }
 
-      window.currentUser = user;
-
-      // iOS PWA: 세션을 localStorage에 명시 저장
-      if (data?.session) {
-        const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
-        try { localStorage.setItem(SUPA_KEY, JSON.stringify(data.session)); } catch (e) {}
-      }
-
-      const authScreen = document.getElementById("authScreen");
-      const appScreen = document.getElementById("appScreen");
-
-      if (authScreen) authScreen.classList.add("hidden");
-      if (appScreen) appScreen.classList.remove("hidden");
-
-      const userEmailEl = document.getElementById("userEmail");
-      if (userEmailEl) {
-        userEmailEl.textContent = user.email || "";
-      }
-
-      await window.loadHabitsFromSupabase();
-
-      if (typeof window.renderAll === "function") {
-        window.renderAll();
-      }
-
-      // appScreen hidden 제거 후 canvas가 실제로 렌더링된 다음 차트 재실행
-      setTimeout(() => {
-        if (typeof window.renderMainLineChart === "function") {
-          window.renderMainLineChart(window.appState?.habits || []);
-        }
-      }, 100);
-
       setEarlyAuthMessage("로그인 성공!");
-      console.log("로그인 성공:", user.email);
+      // SIGNED_IN 이벤트가 onAuthStateChange에서 처리하므로 showApp은 거기서 호출됨
+      // 단, currentUser가 이미 없을 때만 직접 호출 (이중 실행 방지)
+      if (!window.currentUser) await showApp(user);
     } catch (error) {
       console.error("로그인 오류:", error);
       setEarlyAuthMessage("로그인 중 오류 발생", true);
@@ -12455,21 +12378,11 @@ console.log("세션 복원 성공:", user.email);
     } catch (error) {
       console.error("로그아웃 오류:", error);
     }
-
-    // iOS 대비: Supabase 세션 키 강제 삭제
+    // iOS 대비: 세션 키 강제 삭제
     const SUPA_KEY = "sb-enzkrtjtrddehzgsiujt-auth-token";
     try { localStorage.removeItem(SUPA_KEY); } catch (e) {}
-    try { sessionStorage.removeItem(SUPA_KEY); } catch (e) {}
     try { localStorage.removeItem("selectedHabitId"); } catch (e) {}
-
-    window.currentUser = null;
-
-    const authScreen = document.getElementById("authScreen");
-    const appScreen = document.getElementById("appScreen");
-
-    if (authScreen) authScreen.classList.remove("hidden");
-    if (appScreen) appScreen.classList.add("hidden");
-
+    showLogin();
     console.log("로그아웃 완료");
   };
 
