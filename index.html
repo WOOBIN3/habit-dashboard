@@ -10568,10 +10568,24 @@ html, body {
 .mb-ctx-overlay { display: none; }
 .mb-ctx-menu { display: none; }
 
+/* ── 로그인 화면: 항상 전체화면 최상위 ── */
+#loginScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 9999;
+  background: #070b14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#loginScreen.hidden {
+  display: none !important;
+}
 </style>
 </head>
 <body>
-  <div id="authScreen" class="auth-shell">
+  <div id="loginScreen" class="auth-shell">
     <div class="auth-card">
       <div class="auth-badge">◆ Obsidian Gold Habit Dashboard</div>
       <h2 class="auth-title">로그인</h2>
@@ -12228,18 +12242,22 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-  // ── 공통 헬퍼 ────────────────────────────────────────────
+  // ── 화면 전환 헬퍼 ───────────────────────────────────────
   function showLogin() {
     window.currentUser = null;
-    document.getElementById("authScreen")?.classList.remove("hidden");
-    document.getElementById("appScreen")?.classList.add("hidden");
+    const ls = document.getElementById("loginScreen");
+    const as = document.getElementById("appScreen");
+    if (ls) ls.style.display = "flex";   // 강제 표시
+    if (as) as.style.display = "none";
     console.log("로그인 화면 표시");
   }
 
   async function showApp(user) {
     window.currentUser = user;
-    document.getElementById("authScreen")?.classList.add("hidden");
-    document.getElementById("appScreen")?.classList.remove("hidden");
+    const ls = document.getElementById("loginScreen");
+    const as = document.getElementById("appScreen");
+    if (ls) ls.style.display = "none";
+    if (as) as.style.display = "";       // 기본값 복원 (CSS가 제어)
     const el = document.getElementById("userEmail");
     if (el) el.textContent = user.email || "";
     if (typeof window.loadHabitsFromSupabase === "function") await window.loadHabitsFromSupabase();
@@ -12254,57 +12272,48 @@ window.addEventListener("DOMContentLoaded", () => {
     console.log("앱 화면 표시:", user.email);
   }
 
-  // ── Supabase 인증 상태 리스너 ─────────────────────────────
-  // INITIAL_SESSION: 클라이언트 초기화 직후 즉시 발생 (DOM 준비 완료 상태)
-  // → 세션 유무를 여기서 즉시 판단해 화면 결정
-  window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    console.log("onAuthStateChange:", event, session?.user?.email || "no user");
-
-    if (event === "INITIAL_SESSION") {
-      if (session?.user) {
-        await showApp(session.user);
-      } else {
+  // ── 세션 확인: DOMContentLoaded에서 getSession() 호출 ────
+  async function checkSession() {
+    try {
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if (error) {
+        console.warn("getSession 오류 → 로그인 화면:", error.message);
         showLogin();
+        return;
       }
-      return;
+      const user = data?.session?.user || null;
+      if (user) {
+        await showApp(user);
+      } else {
+        showLogin(); // 세션 없으면 무조건 로그인 화면
+      }
+    } catch (e) {
+      console.error("checkSession 예외:", e);
+      showLogin();
     }
+  }
 
-    if (event === "SIGNED_IN" && session?.user) {
-      if (!window.currentUser) await showApp(session.user);
-    } else if (event === "SIGNED_OUT") {
+  document.addEventListener("DOMContentLoaded", () => {
+    checkSession();
+  });
+
+  // ── onAuthStateChange: 토큰 갱신/로그아웃만 처리 ─────────
+  window.supabaseClient.auth.onAuthStateChange((event, session) => {
+    console.log("onAuthStateChange:", event);
+    if (event === "SIGNED_OUT") {
       showLogin();
     } else if (event === "TOKEN_REFRESHED" && session?.user) {
       window.currentUser = session.user;
     }
   });
 
-  // ── pageshow / visibilitychange: 백그라운드 복귀 시 재확인 ──
-  async function restoreSession() {
-    try {
-      const { data } = await window.supabaseClient.auth.getSession();
-      if (data?.session?.user) {
-        await showApp(data.session.user);
-      } else {
-        showLogin();
-      }
-    } catch (e) {
-      console.error("restoreSession 오류:", e);
-      showLogin();
-    }
-  }
-
-  window.addEventListener("pageshow", async (ev) => {
-    if (ev.persisted && !window.currentUser) {
-      console.log("pageshow(persisted) - 세션 재확인");
-      await restoreSession();
-    }
+  // ── 백그라운드 복귀 시 세션 재확인 ───────────────────────
+  window.addEventListener("pageshow", (ev) => {
+    if (ev.persisted && !window.currentUser) checkSession();
   });
 
-  document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState === "visible" && !window.currentUser) {
-      console.log("visibilitychange - 세션 재확인");
-      await restoreSession();
-    }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && !window.currentUser) checkSession();
   });
 
   window.signUp = async function () {
@@ -12363,9 +12372,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
 
       setEarlyAuthMessage("로그인 성공!");
-      // SIGNED_IN 이벤트가 onAuthStateChange에서 처리하므로 showApp은 거기서 호출됨
-      // 단, currentUser가 이미 없을 때만 직접 호출 (이중 실행 방지)
-      if (!window.currentUser) await showApp(user);
+      await showApp(user);
     } catch (error) {
       console.error("로그인 오류:", error);
       setEarlyAuthMessage("로그인 중 오류 발생", true);
